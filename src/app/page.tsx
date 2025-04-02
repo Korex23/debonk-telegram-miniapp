@@ -1,15 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-interface UserData {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  language_code: string;
-  is_premium?: boolean;
-}
+import { UserData } from "@/types/telegram";
 
 export default function Home() {
   const [userData, setUserData] = useState<UserData | null>(null);
