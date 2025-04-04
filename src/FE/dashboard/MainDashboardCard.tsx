@@ -61,7 +61,7 @@ const MainDashboardCard: React.FC = () => {
     // Simulate balance and unrealized PNL
     setSolBalance(position.capital);
     setUnrealizedPNL(position.pnlPercentage);
-  }, [position.capital, position.pnlPercentage]);
+  }, []);
 
   const generateAddress = useCallback(() => {
     // setLoading(true);
@@ -71,7 +71,7 @@ const MainDashboardCard: React.FC = () => {
     // console.log(address);
 
     // setLoading(false);
-  }, [address]);
+  }, []);
 
   useEffect(() => {
     generateAddress(); // Generate address on component mount
@@ -84,7 +84,7 @@ const MainDashboardCard: React.FC = () => {
     }
   };
 
-  //   console.log(position.pnlColor);
+  console.log(position.pnlColor);
 
   return (
     <section className="mb-5 bg-[#3C3C3C3B] backdrop-blur-2xl border-[#CC920F] border-[.5px] text-white shadow-lg rounded-xl p-3 w-full max-w-[360px] mx-auto">
