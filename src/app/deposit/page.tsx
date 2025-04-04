@@ -1,45 +1,28 @@
-import React, { useEffect } from "react";
-import { IoClose, IoCopySharp } from "react-icons/io5";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { IoArrowBack, IoCopySharp } from "react-icons/io5";
 import { QRCodeSVG } from "qrcode.react";
+import Link from "next/link";
+import { generateRandomCryptoAddress } from "@/utils/RandomCryptoAddress";
 
-interface DepositModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  address: string;
-}
+const DepositPage = () => {
+  const [address, setAddress] = useState<string>("");
+  const [isCopied, setIsCopied] = useState<boolean>(false);
 
-const DepositModal: React.FC<DepositModalProps> = ({
-  isOpen,
-  onClose,
-  address,
-}) => {
+  // Set your Solana deposit address here, for example:
   useEffect(() => {
-    // Disable scroll on the body when modal is open
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-
-    // Cleanup function to reset scroll on unmount or when modal is closed
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [isOpen]); // Dependency on `isOpen` to trigger the effect when modal state changes
-
-  if (!isOpen) return null;
-
-  // Close modal when background is clicked
-  const handleBackgroundClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+    // Set a mock address for the example
+    setAddress(generateRandomCryptoAddress()); // Replace with actual address fetching logic
+  }, []);
 
   const handleCopyAddress = () => {
     if (address) {
       navigator.clipboard.writeText(address);
-      alert("Address copied to clipboard!");
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000); // Reset after 2 seconds
     }
   };
 
@@ -59,18 +42,17 @@ const DepositModal: React.FC<DepositModalProps> = ({
     }
   };
 
-  const uri = `solana:${address}`;
+  // Close and redirect (optional)
 
   return (
-    <div
-      className="fixed bg-[#080808] flex items-center justify-center z-40 pb-16"
-      onClick={handleBackgroundClick}
-    >
-      <div className="bg-[#080808] border border-[#E6B911] w-full max-w-md p-6 fixed text-center shadow-lg relative rounded-lg flex flex-col justify-center transition-all transform">
+    <div className="flex items-center justify-center">
+      <div className="bg-[#080808] h-screen w-full max-w-md p-6 fixed text-center shadow-lg relative flex flex-col justify-center transition-all transform">
         {/* Close button */}
-        <button onClick={onClose} className="absolute top-4 left-4 text-accent">
-          <IoClose size={24} />
-        </button>
+        <Link href={"/"}>
+          <button className="absolute top-4 left-4 text-white">
+            <IoArrowBack size={24} />
+          </button>
+        </Link>
 
         {/* Title */}
         <h2 className="text-xl font-bold text-white mb-6">Deposit</h2>
@@ -92,8 +74,10 @@ const DepositModal: React.FC<DepositModalProps> = ({
         </p>
 
         {/* Address with Copy Button */}
+        {isCopied && <span className="text-white ml-2">Copied!</span>}
         <div className="bg-[#E6B911] rounded-lg p-3 mb-6 flex justify-center items-center text-black">
           <span>{`${address.slice(0, 6)}...${address.slice(-4)}`}</span>
+
           <button className="ml-2" onClick={handleCopyAddress}>
             <IoCopySharp className="text-black" />
           </button>
@@ -111,4 +95,4 @@ const DepositModal: React.FC<DepositModalProps> = ({
   );
 };
 
-export default DepositModal;
+export default DepositPage;

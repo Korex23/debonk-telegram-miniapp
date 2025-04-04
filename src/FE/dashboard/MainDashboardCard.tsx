@@ -12,12 +12,13 @@ import { SlRefresh } from "react-icons/sl";
 import { CiCircleAlert } from "react-icons/ci";
 import { GiPlainCircle } from "react-icons/gi";
 import { generateRandomPosition } from "@/utils/RandomPositions";
-import DepositModal from "../wallet/DepositModal";
+import Link from "next/link";
 // import { useRouter } from "next/router";
 
 interface Button {
   label: string;
   icon: React.ReactNode;
+  href?: string;
   actions?: () => void;
 }
 
@@ -80,18 +81,18 @@ const MainDashboardCard: React.FC = () => {
     {
       label: "Deposit",
       icon: <PiHandDepositFill className="text-[25px]" color="#CC920F" />,
-      actions: handleOpenDepositModal,
+      href: "/deposit",
     },
     {
       label: "Withdraw",
       icon: <PiHandWithdrawFill className="text-[25px]" color="#CC920F" />,
-      actions: handleOpenDepositModal,
+      href: "/withdraw",
     },
     {
       label: "Refresh",
       icon: <SlRefresh className="text-[25px]" color="#CC920F" />,
       actions: () => {
-        // router.reload();
+        window.location.reload();
       },
     },
   ];
@@ -142,22 +143,16 @@ const MainDashboardCard: React.FC = () => {
       {/* Action Buttons */}
       <div className="flex mx-auto justify-around mt-4 text-[10px] text-accent font-light space-x-3 w-[80%]">
         {buttons.map((button, index) => (
-          <button
-            key={index}
-            className="flex flex-col items-center gap-[3px] p-2 rounded-lg shadow border border-[#CC920F] border-accent w-[60px] font-poppins tracking-wide text-[#CC920F]"
-            onClick={button.actions}
-          >
-            {button.icon}
-            {button.label}
-          </button>
+          <Link href={button?.href ?? ""} key={index}>
+            <button
+              className="cursor-pointer flex flex-col items-center gap-[3px] p-2 rounded-lg shadow border border-[#CC920F] border-accent w-[60px] font-poppins tracking-wide text-[#CC920F]"
+              onClick={button.actions}
+            >
+              {button.icon}
+              {button.label}
+            </button>
+          </Link>
         ))}
-      </div>
-      <div className="flex justify-center items-center">
-        <DepositModal
-          isOpen={isDepositModalOpen}
-          onClose={() => setIsDepositModalOpen(false)}
-          address={address}
-        />
       </div>
     </section>
   );
