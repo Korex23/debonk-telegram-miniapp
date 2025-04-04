@@ -1,51 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { UserData } from "@/types/telegram";
+import MainDashboardCard from "@/FE/dashboard/MainDashboardCard";
+import PositionCard from "@/FE/positions/Position";
+import { Position } from "@/types/Position";
+import { generateRandomPosition } from "@/utils/RandomPositions";
 
-export default function Home() {
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [isClient, setIsClient] = useState(false); // Ensures no SSR mismatch
+import { useEffect, useState } from "react";
+
+const DashboardPage: React.FC = () => {
+  const [price, setPrice] = useState<number | null>(null);
 
   useEffect(() => {
-    setIsClient(true); // Mark component as mounted
+    const fetchPrice = async () => {
+      const res = await fetch(
+        "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+      );
+      const data = await res.json();
 
-    import("@twa-dev/sdk").then((WebApp) => {
-      const user = WebApp.default.initDataUnsafe?.user;
-      if (user) {
-        setUserData(user as UserData);
-      }
-    });
+      setPrice(data.solana?.usd || null);
+    };
+
+    fetchPrice();
   }, []);
-
-  if (!isClient) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        Loading...
-      </div>
-    ); // Avoids mismatches
-  }
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold mb-4">Debonk Telegram Bot</h1>
-      {userData ? (
-        <div>
-          <p className="text-lg">
-            Welcome, {userData.first_name} {userData.last_name}
-          </p>
-          <p className="text-sm text-gray-500">@{userData.username}</p>
-          <p className="text-sm text-gray-500">ID: {userData.id}</p>
-          <p className="text-sm text-gray-500">
-            Lang: {userData.language_code}
-          </p>
-          <p className="text-sm text-gray-500">
-            Premium: {userData.is_premium ? "Yes" : "No"}
-          </p>
+    <>
+      <main className="mt-16">
+        <div className="p-3 w-full mx-auto">
+          <MainDashboardCard />
         </div>
-      ) : (
-        <p className="text-lg">User data not found</p>
-      )}
-    </div>
+        <div className="p-3 w-full max-w-[360px] mx-auto">
+          <h2 className="text-2xl font-semibold text-white mb-4">
+            Positions Overview
+          </h2>
+          <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-150px)]">
+            {Array.from({ length: 3 }, generateRandomPosition).map(
+              (position, index) => (
+                <PositionCard key={index} position={position} price={price} />
+              )
+            )}
+          </div>
+        </div>
+      </main>
+    </>
   );
-}
+};
+
+export default DashboardPage;
