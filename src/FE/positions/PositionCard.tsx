@@ -1,7 +1,7 @@
 "use client";
 
-import { FaExternalLinkAlt } from "react-icons/fa";
-import { IoCopySharp } from "react-icons/io5";
+// import { FaExternalLinkAlt } from "react-icons/fa";
+// import { IoCopySharp } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import { Position } from "@/types/Position";
 import { generateRandomPosition } from "@/utils/RandomPositions";

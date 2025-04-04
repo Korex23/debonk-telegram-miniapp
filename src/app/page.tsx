@@ -2,7 +2,6 @@
 
 import MainDashboardCard from "@/FE/dashboard/MainDashboardCard";
 import PositionCard from "@/FE/positions/Position";
-import { Position } from "@/types/Position";
 import { generateRandomPosition } from "@/utils/RandomPositions";
 
 import { useEffect, useState } from "react";
