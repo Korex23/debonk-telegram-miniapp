@@ -38,7 +38,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Exo 2", sans-serif;
+  font-family: "Exo 2", sans-serif !important;
 }
 
 .font-poppins {

@@ -8,7 +8,7 @@ interface PositionCardProps {
 
 const PositionCard: React.FC<PositionCardProps> = ({ position, price }) => {
   return (
-    <div className="bg-[#141414] px-4 py-2 space-y-2 rounded-lg border border-accent w-full max-w-[350px] mx-auto">
+    <div className="bg-[#141414] px-4 py-2 space-y-2 rounded-lg w-full max-w-[350px] mx-auto">
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center">
