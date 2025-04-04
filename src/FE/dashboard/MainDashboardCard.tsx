@@ -84,10 +84,10 @@ const MainDashboardCard: React.FC = () => {
     }
   };
 
-  console.log(position.pnlColor);
+  //   console.log(position.pnlColor);
 
   return (
-    <section className="mb-5 bg-[#3C3C3C3B] backdrop-blur-2xl border-[#CC920F] border-[.5px] text-white shadow-lg rounded-xl p-3 w-full max-w-[360px] mx-auto">
+    <section className="mb-5 bg-[#3C3C3C3B] font-exo2 backdrop-blur-2xl border-[#CC920F] border-[.5px] text-white shadow-lg rounded-xl p-3 w-full max-w-[360px] mx-auto">
       {/* Wallet Address Section */}
       <div className="flex justify-between items-start">
         <div>
