@@ -12,10 +12,13 @@ import { SlRefresh } from "react-icons/sl";
 import { CiCircleAlert } from "react-icons/ci";
 import { GiPlainCircle } from "react-icons/gi";
 import { generateRandomPosition } from "@/utils/RandomPositions";
+import DepositModal from "../wallet/DepositModal";
+// import { useRouter } from "next/router";
 
 interface Button {
   label: string;
   icon: React.ReactNode;
+  actions?: () => void;
 }
 
 const MainDashboardCard: React.FC = () => {
@@ -25,22 +28,9 @@ const MainDashboardCard: React.FC = () => {
   const [solBalance, setSolBalance] = useState<number>(0);
   const [unrealizedPNL, setUnrealizedPNL] = useState<number>(0);
   const [shortenedAddress, setShortenedAddress] = useState<string>("");
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const position = generateRandomPosition(); // Generate a random position
-
-  const buttons: Button[] = [
-    {
-      label: "Deposit",
-      icon: <PiHandDepositFill className="text-[25px]" color="#CC920F" />,
-    },
-    {
-      label: "Withdraw",
-      icon: <PiHandWithdrawFill className="text-[25px]" color="#CC920F" />,
-    },
-    {
-      label: "Refresh",
-      icon: <SlRefresh className="text-[25px]" color="#CC920F" />,
-    },
-  ];
+  // const router = useRouter();
 
   useEffect(() => {
     const fetchPrice = async () => {
@@ -83,6 +73,28 @@ const MainDashboardCard: React.FC = () => {
       alert("Address copied to clipboard!");
     }
   };
+
+  const handleOpenDepositModal = () => setIsDepositModalOpen(true);
+
+  const buttons: Button[] = [
+    {
+      label: "Deposit",
+      icon: <PiHandDepositFill className="text-[25px]" color="#CC920F" />,
+      actions: handleOpenDepositModal,
+    },
+    {
+      label: "Withdraw",
+      icon: <PiHandWithdrawFill className="text-[25px]" color="#CC920F" />,
+      actions: handleOpenDepositModal,
+    },
+    {
+      label: "Refresh",
+      icon: <SlRefresh className="text-[25px]" color="#CC920F" />,
+      actions: () => {
+        // router.reload();
+      },
+    },
+  ];
 
   //   console.log(position.pnlColor);
 
@@ -133,11 +145,19 @@ const MainDashboardCard: React.FC = () => {
           <button
             key={index}
             className="flex flex-col items-center gap-[3px] p-2 rounded-lg shadow border border-[#CC920F] border-accent w-[60px] font-poppins tracking-wide text-[#CC920F]"
+            onClick={button.actions}
           >
             {button.icon}
             {button.label}
           </button>
         ))}
+      </div>
+      <div className="flex justify-center items-center">
+        <DepositModal
+          isOpen={isDepositModalOpen}
+          onClose={() => setIsDepositModalOpen(false)}
+          address={address}
+        />
       </div>
     </section>
   );

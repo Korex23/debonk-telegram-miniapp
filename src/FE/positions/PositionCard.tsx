@@ -96,7 +96,7 @@ const PositionsCard: React.FC = () => {
     //     ))}
     //   </div>
     // </main>
-    <main className="pt-0 p-3 pb-20 bg-black min-h-screen">
+    <main className="pt-0 p-3 pb-20 bg-[#080808] min-h-screen">
       <h2 className="text-2xl font-semibold text-center text-white mb-4">
         Positions
       </h2>
