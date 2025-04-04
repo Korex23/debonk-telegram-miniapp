@@ -78,7 +78,7 @@ const DepositModal: React.FC<DepositModalProps> = ({
         {/* QR Code */}
         <div className="flex justify-center mb-6">
           <QRCodeSVG
-            value={uri}
+            value={address}
             size={160}
             fgColor="#E6B911"
             bgColor="#000000"
