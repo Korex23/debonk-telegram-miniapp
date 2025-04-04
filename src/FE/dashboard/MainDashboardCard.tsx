@@ -29,7 +29,6 @@ const MainDashboardCard: React.FC = () => {
   const [solBalance, setSolBalance] = useState<number>(0);
   const [unrealizedPNL, setUnrealizedPNL] = useState<number>(0);
   const [shortenedAddress, setShortenedAddress] = useState<string>("");
-  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const position = generateRandomPosition(); // Generate a random position
   // const router = useRouter();
 
@@ -74,8 +73,6 @@ const MainDashboardCard: React.FC = () => {
       alert("Address copied to clipboard!");
     }
   };
-
-  const handleOpenDepositModal = () => setIsDepositModalOpen(true);
 
   const buttons: Button[] = [
     {

@@ -10,7 +10,7 @@ interface WithdrawStore {
   addToWalletHistory: (wallet: string) => void;
 }
 
-export const useWithdrawStore = create<WithdrawStore>((set, get) => ({
+export const useWithdrawStore = create<WithdrawStore>((set) => ({
   selectedWallet: "",
   walletHistory: [
     "0x1234567890abcdef",
