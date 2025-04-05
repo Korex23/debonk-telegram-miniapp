@@ -1,7 +1,7 @@
 "use client";
 
 import { useWithdrawStore } from "@/stores/useWithdrawStore";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Loader from "../common/Loader";
 import Lottie from "lottie-react";

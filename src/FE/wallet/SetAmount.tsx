@@ -7,7 +7,7 @@ import { IoArrowBack } from "react-icons/io5";
 import Link from "next/link";
 
 const SetAmount: React.FC = () => {
-  const { amount, setAmount, selectedWallet } = useWithdrawStore();
+  const { setAmount, selectedWallet } = useWithdrawStore();
   const router = useRouter();
 
   const [amountInput, setAmountInput] = useState<string>("0.0"); // Now in SOL
