@@ -3,7 +3,6 @@ import Loader from "@/FE/common/Loader";
 
 const Confirm = dynamic(() => import("@/FE/wallet/ConfirmDetails"), {
   loading: () => <Loader />,
-  ssr: false,
 });
 
 const Page = () => {
