@@ -44,6 +44,16 @@ body {
   /* font-family: "Exo 2", sans-serif !important; */
 }
 
+input[type="number"].no-spinner::-webkit-outer-spin-button,
+input[type="number"].no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"].no-spinner {
+  -moz-appearance: textfield; /* Firefox */
+}
+
 /* .font-poppins {
   font-family: "Poppins", sans-serif;
 } */

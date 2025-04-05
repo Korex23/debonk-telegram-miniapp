@@ -17,12 +17,12 @@ const SelectWallet: React.FC = () => {
 
       addToWalletHistory(walletInput);
       console.log("Navigating to /withdraw/confirm");
-      router.push("/withdraw/confirm");
+      router.push("/withdraw/set-amount");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#080808] w-full max-w-[360px] text-white p-3">
+    <div className="flex flex-col justify-center bg-[#080808] w-full max-w-[360px] text-white p-3">
       <h2 className="text-lg font-bold mb-4">Select Wallet</h2>
 
       {/* Wallet Input */}
@@ -36,7 +36,7 @@ const SelectWallet: React.FC = () => {
         />
 
         {/* Wallet History */}
-        <h3 className="mt-6 text-lg font-semibold">Wallet History</h3>
+        <h3 className="mt-6 text-lg font-semibold font-poppins">Recent</h3>
         <div className="mt-2">
           {walletHistory.length === 0 ? (
             <p className="text-gray-400">No history available</p>

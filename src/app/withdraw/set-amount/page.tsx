@@ -1,14 +1,14 @@
 import dynamic from "next/dynamic";
 import Loader from "@/FE/common/Loader";
 
-const Confirm = dynamic(() => import("@/FE/wallet/ConfirmDetails"), {
+const SetAmount = dynamic(() => import("@/FE/wallet/SetAmount"), {
   loading: () => <Loader />,
 });
 
 const Page = () => {
   return (
     <div className="flex justify-center items-center">
-      <Confirm />
+      <SetAmount />
     </div>
   );
 };

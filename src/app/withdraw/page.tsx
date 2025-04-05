@@ -1,5 +1,10 @@
 import React from "react";
-import SelectWallet from "@/FE/wallet/SelectWallet";
+import dynamic from "next/dynamic";
+import Loader from "@/FE/common/Loader";
+
+const SelectWallet = dynamic(() => import("@/FE/wallet/SelectWallet"), {
+  loading: () => <Loader />,
+});
 
 const WithdrawPage: React.FC = () => {
   return (

@@ -12,6 +12,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@twa-dev/sdk": "^8.0.2",
     "clsx": "^2.1.1",
+    "lottie-react": "^2.4.1",
     "next": "15.2.4",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
