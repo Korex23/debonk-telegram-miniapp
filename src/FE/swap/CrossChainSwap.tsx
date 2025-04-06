@@ -1,10 +1,10 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
 import { IoChevronDown, IoArrowBack } from "react-icons/io5";
 import { FaExchangeAlt } from "react-icons/fa";
 import { useSwapStore } from "@/stores/useSwapStore";
-import ConfirmModal from "./ConfirmModal";
 import { useRouter } from "next/navigation";
 
 interface Token {
@@ -12,6 +12,11 @@ interface Token {
   chain: string;
   id: string;
 }
+
+const ConfirmModal = dynamic(() => import("./ConfirmModal"), {
+  loading: () => "Loading..",
+  ssr: false,
+});
 
 const tokenList: Token[] = [
   { symbol: "USDT", chain: "BSC", id: "tether" },
