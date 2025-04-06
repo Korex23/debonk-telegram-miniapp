@@ -37,8 +37,10 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
       </head>
-      <body className={`${exo2.variable} ${poppins.variable} antialiased`}>
-        <main>{children}</main>
+      <body
+        className={`${exo2.variable} ${poppins.variable} antialiased h-screen overflow-y-auto bg-[#0B0B0B]`}
+      >
+        <main className="pb-12 min-h-full">{children}</main>
         <BottomNav />
       </body>
     </html>

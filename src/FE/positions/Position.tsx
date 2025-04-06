@@ -8,52 +8,53 @@ interface PositionCardProps {
 
 const PositionCard: React.FC<PositionCardProps> = ({ position, price }) => {
   return (
-    <div className="bg-[#141414] px-4 py-2 space-y-2 rounded-lg w-full max-w-[350px] mx-auto font-exo2">
+    <div className="bg-[#141414] px-4 py-3 rounded-xl w-full max-w-[350px] mx-auto font-exo2 shadow-md border border-[#1f1f1f] space-y-3">
       <div className="flex justify-between items-start">
+        {/* Token Info */}
         <div>
-          <div className="flex items-center">
-            <div className="text-lg text-white">{position.name}</div>
+          <div className="text-white text-base font-semibold">
+            {position.name}
           </div>
-          <p className="text-xs text-white font-extralight">
-            MC ${position.mc}
-          </p>
-          <p className="text-xs text-white font-extralight">
-            LIQ ${position.liq.toFixed(2)}
+          <p className="text-xs text-gray-400">MC: ${position.mc}</p>
+          <p className="text-xs text-gray-400">
+            LIQ: ${position.liq.toFixed(2)}
           </p>
         </div>
 
-        <div className="flex space-x-4">
+        {/* Metrics */}
+        <div className="flex gap-4 text-right">
           <div>
-            <p className="text-white text-xs font-normal">PNL</p>
-            <div className={`text-[10px] font-bold ${position.pnlColor}`}>
+            <p className="text-xs text-gray-400 font-light">PNL</p>
+            <p className={`text-sm font-bold ${position.pnlColor}`}>
               {position.pnl.toFixed(2)} SOL
-            </div>
-            <div className={`text-[10px] font-bold ${position.pnlColor}`}>
+            </p>
+            <p className={`text-[11px] ${position.pnlColor}`}>
               ${price !== null ? (position.pnlSol * price).toFixed(2) : "0.00"}
-            </div>
-            <div className={`text-[10px] font-bold ${position.pnlColor}`}>
+            </p>
+            <p className={`text-[11px] ${position.pnlColor}`}>
               {position.pnlPercentage.toFixed(2)}%
-            </div>
+            </p>
           </div>
 
-          <div className="text-xs">
-            <p className="text-white font-normal">Capital</p>
-            <p className="text-white font-extralight">
+          <div>
+            <p className="text-xs text-gray-400 font-light">Capital</p>
+            <p className="text-sm text-white">
               {position.capital.toFixed(2)} SOL
             </p>
-            <p className="text-white font-extralight">
+            <p className="text-[11px] text-gray-300">
               $
               {price !== null
                 ? (position.capital * price).toFixed(2)
                 : "Loading"}
             </p>
           </div>
-          <div className="text-xs">
-            <p className="text-white font-normal">Value</p>
-            <p className="text-white font-extralight">
+
+          <div>
+            <p className="text-xs text-gray-400 font-light">Value</p>
+            <p className="text-sm text-white">
               {position.value.toFixed(2)} SOL
             </p>
-            <p className="text-white font-extralight">
+            <p className="text-[11px] text-gray-300">
               $
               {price !== null ? (position.value * price).toFixed(2) : "Loading"}
             </p>
@@ -61,7 +62,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position, price }) => {
         </div>
       </div>
 
-      <button className="cursor-pointer bg-[#E82E2E] text-[#fff] font-extralight text-xs rounded-lg px-3 py-2 tracking-wide hover:bg-[#E82E2E] transition duration-200 ease-in-out w-full">
+      <button className="bg-[#E82E2E] hover:bg-[#ff4d4d] text-white text-xs font-semibold py-2 rounded-lg w-full transition duration-200 ease-in-out shadow-sm">
         Sell 100%
       </button>
     </div>

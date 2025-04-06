@@ -4,7 +4,7 @@ import PositionsCard from "@/FE/positions/PositionCard";
 const PositionsPage: React.FC = () => {
   return (
     <>
-      <main className="mt-16">
+      <main className="mt-10">
         <PositionsCard />
       </main>
     </>

@@ -86,7 +86,7 @@ const CrossChainSwap: React.FC = () => {
       >
         <IoArrowBack size={24} color="#E6B911" />
       </button>
-      <h2 className="text-center text-xl font-semibold mb-4">
+      <h2 className="text-center text-xl font-semibold my-6">
         Cross Chain Swap
       </h2>
 
