@@ -66,7 +66,7 @@ const SetAmount: React.FC = () => {
         <IoArrowBack size={24} color="#E6B911" />
       </button>
 
-      <div className="md:w-[360px] max-w-[360px] w-full">
+      <div className="min-[370px]:w-[360px] w-[90vw]">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-semibold text-white font-poppins">
             Enter Amount
