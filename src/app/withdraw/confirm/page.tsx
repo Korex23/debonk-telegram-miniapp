@@ -12,7 +12,9 @@ const ConfirmDetails = dynamic(() => import("@/FE/wallet/ConfirmDetails"), {
 export default function ConfirmPage() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-black">
-      <ConfirmDetails />
+      <div className="fixed">
+        <ConfirmDetails />
+      </div>
     </div>
   );
 }

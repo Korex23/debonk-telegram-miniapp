@@ -4,9 +4,11 @@ import PositionsCard from "@/FE/positions/PositionCard";
 const PositionsPage: React.FC = () => {
   return (
     <>
-      <main className="mt-10">
-        <PositionsCard />
-      </main>
+      <div className="flex justify-center items-center min-h-screen bg-black mt-10">
+        <div className="fixed">
+          <PositionsCard />
+        </div>
+      </div>
     </>
   );
 };

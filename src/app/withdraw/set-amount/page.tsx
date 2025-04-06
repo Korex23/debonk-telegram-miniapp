@@ -7,8 +7,10 @@ const SetAmount = dynamic(() => import("@/FE/wallet/SetAmount"), {
 
 const Page = () => {
   return (
-    <div className="flex justify-center items-center">
-      <SetAmount />
+    <div className="flex justify-center items-center min-h-screen bg-black">
+      <div className="fixed">
+        <SetAmount />
+      </div>
     </div>
   );
 };

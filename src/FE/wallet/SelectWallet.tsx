@@ -122,7 +122,7 @@ const SelectWallet: React.FC = () => {
       {/* Error Alert */}
       {error && (
         <div
-          className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-sm px-4 py-2 rounded-md shadow-lg z-50 transition-all duration-300 ${
+          className={`fixed bottom-[100px] left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-sm px-4 py-2 rounded-md shadow-lg z-50 transition-all duration-300 ${
             error ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
         >

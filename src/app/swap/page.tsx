@@ -8,7 +8,9 @@ const CrossChainSwap = dynamic(() => import("@/FE/swap/CrossChainSwap"), {
 const Page = () => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-black">
-      <CrossChainSwap />
+      <div className="fixed">
+        <CrossChainSwap />
+      </div>
     </div>
   );
 };

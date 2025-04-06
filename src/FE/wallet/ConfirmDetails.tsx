@@ -50,7 +50,7 @@ const ConfirmDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center bg-[#080808] w-[360px] text-white space-x-4">
+      <div className="flex items-center justify-center bg-[#080808] min-[370px]:w-[360px] w-[90vw]text-white space-x-4">
         <Loader />
 
         <p className="text-sm text-gray-400 font-exo2 tracking-wide animate-pulse">
@@ -62,7 +62,7 @@ const ConfirmDetails: React.FC = () => {
 
   if (status === "success") {
     return (
-      <div className="flex flex-col justify-center items-center bg-[#080808] w-full max-w-[360px] text-white p-5">
+      <div className="flex flex-col justify-center items-center bg-[#080808] min-[370px]:w-[360px] w-[90vw] text-white p-5">
         <div className="bg-[#141414] border border-green-600 rounded-lg p-6 w-full text-center shadow-lg">
           <h2 className="text-xl font-bold text-green-400 mb-3">
             Transaction Successful
@@ -87,7 +87,7 @@ const ConfirmDetails: React.FC = () => {
 
   if (status === "error") {
     return (
-      <div className="flex flex-col justify-center items-center bg-[#080808] w-full max-w-[360px] text-white p-5">
+      <div className="flex flex-col justify-center items-center bg-[#080808] min-[370px]:w-[360px] w-[90vw] text-white p-5">
         <div className="bg-[#141414] border border-red-600 rounded-lg p-6 w-full text-center shadow-lg">
           <h2 className="text-xl font-bold text-red-400 mb-3">
             Transaction Failed
@@ -111,7 +111,7 @@ const ConfirmDetails: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center bg-[#080808] w-full min-h-screen max-w-[420px] text-white p-6 relative">
+    <div className="flex flex-col items-center justify-center bg-[#080808] min-h-screen min-[370px]:w-[360px] w-[90vw] text-white relative">
       {/* Back Button */}
       <button
         className="absolute top-4 left-4 text-white opacity-80 hover:opacity-100 transition"

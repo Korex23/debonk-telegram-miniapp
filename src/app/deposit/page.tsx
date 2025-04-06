@@ -7,8 +7,10 @@ const DepositPage = dynamic(() => import("@/FE/wallet/Deposit"), {
 
 const Page = () => {
   return (
-    <div className="flex justify-center items-center">
-      <DepositPage />
+    <div className="flex justify-center items-center min-h-screen bg-black">
+      <div className="fixed">
+        <DepositPage />
+      </div>
     </div>
   );
 };
