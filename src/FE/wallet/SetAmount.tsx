@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { useWithdrawStore } from "@/stores/useWithdrawStore";
 import { useRouter } from "next/navigation";
 import { IoArrowBack } from "react-icons/io5";
-import Link from "next/link";
 
 const SetAmount: React.FC = () => {
   const { setAmount, selectedWallet } = useWithdrawStore();
