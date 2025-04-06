@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { IoArrowBack, IoCopySharp } from "react-icons/io5";
 import { QRCodeSVG } from "qrcode.react";
-import Link from "next/link";
 import { generateRandomCryptoAddress } from "@/utils/RandomCryptoAddress";
 import { useRouter } from "next/navigation";
 
