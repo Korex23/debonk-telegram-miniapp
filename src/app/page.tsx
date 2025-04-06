@@ -22,7 +22,7 @@ const DashboardPage: React.FC = () => {
   }, []);
   return (
     <>
-      <main className="mt-16">
+      <main className="mt-10">
         <div className="p-3 w-full mx-auto">
           <MainDashboardCard />
         </div>

@@ -29,10 +29,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position, price }) => {
               {position.pnl.toFixed(2)} SOL
             </div>
             <div className={`text-[10px] font-bold ${position.pnlColor}`}>
-              $
-              {price !== null
-                ? (position.pnlSol * price).toFixed(2)
-                : "Loading"}
+              ${price !== null ? (position.pnlSol * price).toFixed(2) : "0.00"}
             </div>
             <div className={`text-[10px] font-bold ${position.pnlColor}`}>
               {position.pnlPercentage.toFixed(2)}%

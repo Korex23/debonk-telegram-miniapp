@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Exo_2, Poppins } from "next/font/google";
 import Script from "next/script";
+import BottomNav from "@/FE/common/BottomNavbar";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -37,7 +38,8 @@ export default function RootLayout({
         />
       </head>
       <body className={`${exo2.variable} ${poppins.variable} antialiased`}>
-        {children}
+        <main>{children}</main>
+        <BottomNav />
       </body>
     </html>
   );

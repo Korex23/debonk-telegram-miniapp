@@ -16,6 +16,8 @@ export const useWithdrawStore = create<WithdrawStore>((set) => ({
     "0x1234567890abcdef",
     "0xabcdef1234567890",
     "0x9876543210fedcba",
+    "0x9876543210fedcb6",
+    "0x9876543210fedcbd",
   ], // Pre-populated wallet history
   amount: 0,
 

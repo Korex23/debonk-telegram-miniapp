@@ -57,3 +57,7 @@ input[type="number"].no-spinner {
 /* .font-poppins {
   font-family: "Poppins", sans-serif;
 } */
+
+button {
+  cursor: pointer;
+}

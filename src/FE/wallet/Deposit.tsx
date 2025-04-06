@@ -5,10 +5,12 @@ import { IoArrowBack, IoCopySharp } from "react-icons/io5";
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
 import { generateRandomCryptoAddress } from "@/utils/RandomCryptoAddress";
+import { useRouter } from "next/navigation";
 
 const DepositPage = () => {
   const [address, setAddress] = useState<string>("");
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const router = useRouter();
 
   // Set your Solana deposit address here, for example:
   useEffect(() => {
@@ -45,48 +47,60 @@ const DepositPage = () => {
   // Close and redirect (optional)
 
   return (
-    <div className="flex items-center justify-center">
-      <div className="bg-[#080808] h-screen w-full max-w-md p-6 fixed text-center shadow-lg relative flex flex-col justify-center transition-all transform">
-        {/* Close button */}
-        <Link href={"/"}>
-          <button className="absolute top-4 left-4 text-white">
-            <IoArrowBack size={24} />
-          </button>
-        </Link>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#080808] px-4 relative gap-3">
+      {/* Back Button */}
 
-        {/* Title */}
-        <h2 className="text-xl font-bold text-white mb-6">Deposit</h2>
+      <button
+        className="absolute top-4 left-4 text-white hover:opacity-90 transition"
+        onClick={() => router.back()}
+      >
+        <IoArrowBack size={24} color="#E6B911" />
+      </button>
 
+      {/* Title */}
+      <h2 className="text-2xl font-semibold text-white font-poppins tracking-tight">
+        Deposit
+      </h2>
+      <div className="bg-[#141414] w-full max-w-md p-6 rounded-2xl text-center shadow-lg flex flex-col justify-center space-y-5">
         {/* QR Code */}
-        <div className="flex justify-center mb-6">
-          <QRCodeSVG
-            value={"7dRnmuCEYJWbApdZCAvXabxJnA54zbSjMiewV8Hk95ax"}
-            size={160}
-            fgColor="#E6B911"
-            bgColor="#000000"
-          />
+        <div className="flex justify-center">
+          <div className="bg-black p-3 rounded-xl border border-[#2c2c2c]">
+            <QRCodeSVG
+              value={address}
+              size={160}
+              fgColor="#E6B911"
+              bgColor="#000000"
+            />
+          </div>
         </div>
 
-        {/* Address Info */}
-        <p className="text-white text-sm mb-4">Your Debonk Solana Address</p>
-        <p className="text-white text-sm mb-4">
-          Receive tokens using this address as your deposit address
-        </p>
+        {/* Info */}
+        <div className="space-y-1">
+          <p className="text-sm text-gray-400 font-exo2">
+            Your Debonk Solana Address
+          </p>
+          <p className="text-xs text-gray-500 font-exo2">
+            Receive tokens using this as your deposit address.
+          </p>
+        </div>
 
-        {/* Address with Copy Button */}
-        {isCopied && <span className="text-white ml-2">Copied!</span>}
-        <div className="bg-[#E6B911] rounded-lg p-3 mb-6 flex justify-center items-center text-black">
-          <span>{`${address.slice(0, 6)}...${address.slice(-4)}`}</span>
-
-          <button className="ml-2" onClick={handleCopyAddress}>
-            <IoCopySharp className="text-black" />
+        {/* Address Copy Box */}
+        <div className="bg-[#E6B911] rounded-lg px-4 py-3 flex items-center justify-between text-black font-mono">
+          <span className="text-[11px]">{address}</span>
+          <button onClick={handleCopyAddress}>
+            <IoCopySharp className="text-black hover:opacity-70 transition" />
           </button>
         </div>
+        {isCopied && (
+          <span className="text-green-400 text-sm font-medium animate-pulse">
+            Copied!
+          </span>
+        )}
 
         {/* Share Button */}
         <button
-          className="bg-transparent border border-[#E6B911] w-full text-[#E6B911] py-2 px-6 rounded-lg p-3 mb-6"
           onClick={handleShare}
+          className="w-full py-2 rounded-lg border border-[#E6B911] text-[#E6B911] font-semibold transition hover:bg-[#E6B911]/10"
         >
           Share
         </button>

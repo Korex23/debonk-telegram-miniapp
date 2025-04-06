@@ -97,56 +97,62 @@ const MainDashboardCard: React.FC = () => {
   //   console.log(position.pnlColor);
 
   return (
-    <section className="mb-5 bg-[#3C3C3C3B] font-exo2 backdrop-blur-2xl border-[#CC920F] border-[.5px] text-white shadow-lg rounded-xl p-3 w-full max-w-[360px] mx-auto">
-      {/* Wallet Address Section */}
+    <section className="mb-5 bg-[#3C3C3C3B] font-exo2 backdrop-blur-2xl border border-[#CC920F]/50 text-white shadow-md rounded-2xl p-4 w-full max-w-[360px] mx-auto space-y-4">
+      {/* Top Section: PNL + Simulation */}
       <div className="flex justify-between items-start">
-        <div>
-          <p className={`text-sm font-light`}>
+        <div className="space-y-1">
+          <p className="text-xs font-light">
             <span className="text-[#FEF2C5]">Unrealized PNL: </span>
             <span className={`${position.pnlColor}`}>
               {Math.round(unrealizedPNL)}%
             </span>
           </p>
           <p className="text-xs text-[#E3B419] font-light">
-            {" "}
             {price !== null ? `$${(solBalance * price).toFixed(2)}` : "$0.00"}
           </p>
         </div>
-        <button className="flex gap-1 items-center text-xs text-accent rounded-xl shadow-lg border border-accent px-3 py-1 text-[#CC920F]">
+
+        <button className="flex items-center gap-1 px-3 py-1 text-[11px] font-semibold text-[#CC920F] border border-[#CC920F] rounded-xl bg-[#1a1a1a]/40 hover:bg-[#2c2c2c] transition-all shadow-sm">
           <PiTestTubeFill className="text-sm" /> Simulation
         </button>
       </div>
 
-      <div className="flex flex-col items-center justify-center">
-        <p className="flex gap-1 relative text-sm text-primary text-[#CC920F]">
-          <span>{`${shortenedAddress}`}</span>
+      {/* Wallet + Balance */}
+      <div className="text-center space-y-2">
+        <div className="flex items-center justify-center gap-2 text-xs text-[#CC920F]">
+          <span>{shortenedAddress}</span>
           <IoCopySharp
-            className="cursor-pointer text-[15px]"
+            className="cursor-pointer hover:opacity-80 transition text-base"
             onClick={handleCopyAddress}
             title="Copy Address"
           />
-        </p>
-        <h2 className="text-[34px]">{solBalance.toFixed(2)} SOL</h2>
-        <p className="text-primary flex gap-[2px] items-center text-[#CC920F]">
+        </div>
+
+        <h2 className="text-3xl font-semibold">{solBalance.toFixed(2)} SOL</h2>
+
+        <p className="text-xs text-[#CC920F] flex items-center justify-center gap-1">
           {price !== null ? `$${(solBalance * price).toFixed(2)}` : "$0.00"}
-          <CiCircleAlert className="text-xs" />
+          <CiCircleAlert className="text-sm" />
         </p>
       </div>
 
-      <button className="flex text-sm gap-1 pt-2 items-center mx-auto font-poppins">
-        Demo <GiPlainCircle className="text-[#1DD75B] text-xs font-light" />
-      </button>
+      {/* Demo Status */}
+      <div className="text-center">
+        <button className="flex items-center gap-1 text-xs text-[#1DD75B] font-medium mx-auto">
+          Demo <GiPlainCircle className="text-[10px]" />
+        </button>
+      </div>
 
       {/* Action Buttons */}
-      <div className="flex mx-auto justify-around mt-4 text-[10px] text-accent font-light space-x-3 w-[80%]">
+      <div className="flex justify-between items-center mt-2 text-xs font-light text-[#CC920F]">
         {buttons.map((button, index) => (
           <Link href={button?.href ?? ""} key={index}>
             <button
-              className="cursor-pointer flex flex-col items-center gap-[3px] p-2 rounded-lg shadow border border-[#CC920F] border-accent w-[60px] font-poppins tracking-wide text-[#CC920F]"
+              className="flex flex-col items-center gap-1 w-[64px] px-2 py-2 rounded-lg border border-[#CC920F]/60 shadow-sm hover:bg-[#333] transition font-poppins text-center"
               onClick={button.actions}
             >
-              {button.icon}
-              {button.label}
+              <span className="text-base">{button.icon}</span>
+              <span>{button.label}</span>
             </button>
           </Link>
         ))}
