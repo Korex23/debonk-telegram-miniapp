@@ -7,7 +7,9 @@ export const BOT_USERNAME =
   process.env.ENV === "production" ? "debonk_bot" : "debonk_test_bot";
 export const DEV_TELEGRAM_ID = 1729044712;
 
-export const RPC_HTTPS_URLS = [CHAINSTACK_RPC, HELIUS_RPC_HTTPS];
+export const RPC_HTTPS_URLS = [
+  "https://mainnet.helius-rpc.com/?api-key=9ad9e982-366d-4425-8a91-80c5e68046dc",
+];
 
 export interface Validator<T> {
   (value: T): Promise<boolean>;

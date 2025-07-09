@@ -1,8 +1,4 @@
-import {
-  getTokenDetails,
-  getSolPrice,
-  getAddressFromTelegramId,
-} from "./helper";
+import { getTokenDetails, getSolPrice } from "./helper";
 import {
   prisma,
   getUserFromTelegramId,
@@ -13,7 +9,6 @@ import {
   getBuyTransaction,
   calculateProfitLoss,
 } from "./prisma";
-import { Wallet } from "@prisma/client";
 
 export async function performSimulationBuy({
   telegramId,
@@ -29,7 +24,7 @@ export async function performSimulationBuy({
     select: { simulationBalance: true },
   });
 
-  if (!userBalance || userBalance.simulationBalance < amount) {
+  if (!userBalance || Number(userBalance.simulationBalance) < amount) {
     throw new Error("Insufficient Simulation SOL balance");
   }
 
@@ -39,9 +34,12 @@ export async function performSimulationBuy({
   const tokenDetails = await getTokenDetails(tokenAddress);
   const amountInToken = amount / Number(tokenDetails.priceNative);
 
-  const wallet = user.wallet.find((w) => w.isPrimary);
+  const wallet = user?.wallet.find((w) => w.isPrimary);
   if (!wallet) {
     throw new Error("No primary wallet found.");
+  }
+  if (!user?.id) {
+    throw new Error("User ID is undefined.");
   }
 
   await prisma.transaction.create({
@@ -58,7 +56,7 @@ export async function performSimulationBuy({
   });
 
   await updatePositionOnBuySimulation(
-    user.id,
+    user?.id,
     wallet.id,
     tokenAddress,
     tokenDetails.name,
@@ -67,7 +65,7 @@ export async function performSimulationBuy({
     true
   );
 
-  return { newBalance: userBalance.simulationBalance - amount };
+  return { newBalance: Number(userBalance.simulationBalance) - amount };
 }
 
 export async function performSimulationSell({
@@ -84,7 +82,7 @@ export async function performSimulationSell({
   }
 
   const user = await getUserFromTelegramId(telegramId);
-  const position = user.positions.find(
+  const position = user?.positions.find(
     (p) => p.isSimulation && p.tokenAddress === tokenAddress
   );
 
@@ -101,11 +99,14 @@ export async function performSimulationSell({
 
   await incrementUserSimulationBalance(telegramId, amountInSol);
 
-  const wallet = user.wallet.find((w) => w.isPrimary);
+  const wallet = user?.wallet.find((w) => w.isPrimary);
   if (!wallet) {
     throw new Error("No primary wallet found.");
   }
 
+  if (!user?.id) {
+    throw new Error("User ID is undefined.");
+  }
   const buyTransaction = await getBuyTransaction(
     user.id,
     wallet.id,
@@ -138,8 +139,8 @@ export async function performSimulationSell({
 
 export async function getSimulationPositions(telegramId: string) {
   const user = await getUserFromTelegramId(telegramId);
-  const positions = user.positions.filter((p) => p.isSimulation);
-  const wallet = user.wallet.find((w) => w.isPrimary);
+  const positions = user?.positions?.filter((p) => p.isSimulation) ?? [];
+  const wallet = user?.wallet.find((w) => w.isPrimary);
   if (!wallet) throw new Error("No primary wallet found.");
 
   const solPrice = await getSolPrice();
@@ -147,6 +148,9 @@ export async function getSimulationPositions(telegramId: string) {
   const detailedPositions = await Promise.all(
     positions.map(async (position) => {
       const tokenDetails = await getTokenDetails(position.tokenAddress);
+      if (user?.id === undefined) {
+        throw new Error("User ID is undefined.");
+      }
       const PNL_usd = await calculateProfitLoss(
         user.id,
         wallet.id,
@@ -168,6 +172,9 @@ export async function getSimulationPositions(telegramId: string) {
         amountHeld: parseFloat(position.amountHeld),
         currentPriceUsd: tokenDetails.priceUsd,
         currentPriceSol: tokenDetails.priceNative,
+        tokenMC: tokenDetails.mc,
+        tokenSymbol: tokenDetails.symbol,
+        tokenLiquidity: tokenDetails.liquidityInUsd,
         PNL_usd,
         PNL_sol,
         PNL_Sol_percent: Number(PNL_Sol_percent),

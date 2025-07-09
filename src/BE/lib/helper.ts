@@ -1,18 +1,6 @@
-import { SwapParams } from "../bridge/types";
-import {
-  checkIfMessageIsSimulation,
-  deriveUserIndex,
-  formatter,
-  getContractAddressFromTextOrLink,
-} from "../utils";
-import customAddressValidator from "./address-validator/wallet_address_validator";
-import {
-  APPLICATION_ERROR,
-  YOU_ARE_IN_THE_SIMULATION_TEXT,
-  LEAST_AMOUNT_REMAINDER,
-  COULD_NOT_GET_TOKEN_DETAILS_TEXT,
-} from "./constants/client";
-import { BOT_USERNAME, Validator } from "./constants/server";
+import { deriveUserIndex } from "../utils";
+import { APPLICATION_ERROR, LEAST_AMOUNT_REMAINDER } from "./constants/client";
+import { BOT_USERNAME } from "./constants/server";
 import {
   getTokenDetails_DEXSCREENER,
   getTokenDetails_DEXTOOLS,
@@ -32,18 +20,14 @@ import {
 } from "./providers/server";
 import {
   BuyTokenParams,
-  DexToolResponse,
-  Holder,
   PercentRange,
-  ResponseObject,
   SellTokenInSolParams,
   SellTokenParams,
-  TokenData,
   TokenDetails,
 } from "./types";
 // /pages/api/sell-token-sol.ts
 
-import { Position, Wallet } from "@prisma/client";
+import { Wallet } from "@prisma/client";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 import { Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import numeral from "numeral";
@@ -84,7 +68,7 @@ export const getUserSolBalance = async (
 ): Promise<number> => {
   const userAddress = getAddressFromTelegramId(telegramId);
   const userBalance = await UserSolSmartWalletClass.getSolBalance(userAddress);
-  return userBalance / LAMPORTS_PER_SOL;
+  return userBalance ?? 0 / LAMPORTS_PER_SOL;
 };
 
 export const getUserTokenBalance = async (
@@ -248,11 +232,6 @@ export const getTokenDataForMiniApp = async (
   }
 };
 
-export const getTokenAddressFromMessage = (messageText: string) => {
-  const tokenAddressMatch = messageText.match(/CA: ([A-Za-z0-9]+)/);
-  return tokenAddressMatch?.[1] ?? null;
-};
-
 const completeBuyAction = async (
   telegramId: string,
   tokenAddress: string,
@@ -385,7 +364,7 @@ export const validateAmountGetTokenAndBuy = async (
       };
     }
 
-    const tokenAddress = getTokenAddressFromMessage(messageText);
+    const tokenAddress = messageText;
     if (!tokenAddress) {
       return {
         status: false,
@@ -427,7 +406,12 @@ export const doUserSellTokenPercent = async (
   userKey: string,
   slippage?: number
 ) => {
-  const userClass = new UserSolSmartWalletClass(userKey);
+  // Convert userKey (string) to Keypair
+  const keypair =
+    typeof userKey === "string"
+      ? getPrivateKeyFromTelegramId(userKey)
+      : userKey;
+  const userClass = new UserSolSmartWalletClass(keypair);
 
   const params: SellTokenParams = {
     token: tokenAddress,
@@ -469,12 +453,17 @@ export const doUserSellTokenSol = async (
   userKey: string,
   slippage?: number
 ) => {
-  const userClass = new UserSolSmartWalletClass(userKey);
+  // Convert userKey (string) to Keypair if necessary
+  const keypair =
+    typeof userKey === "string"
+      ? getPrivateKeyFromTelegramId(userKey)
+      : userKey;
+  const userClass = new UserSolSmartWalletClass(keypair);
 
   const params: SellTokenInSolParams = {
     token: tokenAddress,
     amountToSellInSol,
-    slippage,
+    slippage: 0.5,
   };
 
   console.log("Sell SOL-based token params (Mini App):", params);
@@ -509,14 +498,15 @@ export const validateAmountGetTokenAndSell = async (
   telegramId: string,
   messageText: string,
   type: "PERCENT" | "AMOUNT",
+  percentToSell?: PercentRange,
   amount?: number,
-  percentToSell?: PercentRange
+  slippage?: number
 ): Promise<{
   status: boolean;
   message: string;
   txHash?: string;
 }> => {
-  const tokenAddress: string | null = getTokenAddressFromMessage(messageText);
+  const tokenAddress: string | null = messageText;
   if (!tokenAddress) {
     return { status: false, message: "Invalid or missing token address." };
   }
@@ -532,33 +522,36 @@ export const validateAmountGetTokenAndSell = async (
     const sellResult = await doUserSellTokenPercent(
       tokenAddress,
       percentToSell,
-      telegramId
+      telegramId,
+      slippage
     );
+
     result = sellResult;
-    // If amountToSell is needed, ensure doUserSellTokenPercent returns it; otherwise, remove this line.
+    txHash = result.txHash;
   } else if (type === "AMOUNT") {
-    if (!amount) {
+    if (amount === undefined) {
       return { status: false, message: "Amount to sell not provided." };
     }
 
-    const { txHash, ...txResult } = await doUserSellTokenSol(
+    const sellResult = await doUserSellTokenSol(
       tokenAddress,
       amount.toString(),
-      telegramId
+      telegramId,
+      slippage
     );
-    result = { txHash, ...txResult };
+
+    result = sellResult;
+    txHash = result.txHash;
   } else {
     return { status: false, message: "Invalid transaction type." };
   }
 
-  if (result.status === false) {
+  if (result.status === false || !txHash) {
     return {
       status: false,
-      message: `Sell transaction failed: ${result.message}`,
+      message: `Sell transaction failed: ${result.message || "Unknown error"}`,
     };
   }
-
-  txHash = result;
 
   const user = await getUserFromTelegramId(telegramId);
   const tokenDetails = await getTokenDetails(tokenAddress);
@@ -584,23 +577,30 @@ export const validateAmountGetTokenAndSell = async (
 
   const buySol = await getBuyTransaction(user.id, walletId, tokenAddress);
 
-  await prisma.transaction.update({
-    where: { id: buySol.id },
-    data: {
-      amountSold: amount!.toString(),
-      status: "sold",
-      sellHash: txHash,
-      sellPrice: tokenDetails.priceUsd.toString(),
-    },
-  });
+  // Only update transaction as successful if txHash exists
+  if (txHash) {
+    await prisma.transaction.update({
+      where: { id: buySol.id },
+      data: {
+        amountSold: (amount ?? 0).toString(),
+        status: "sold",
+        sellHash: JSON.stringify({
+          txHash,
+          status: "success",
+          message: "Token sold successfully.",
+        }),
+        sellPrice: tokenDetails.priceUsd.toString(),
+      },
+    });
 
-  await updatePositionOnSell(
-    user.id,
-    walletId,
-    tokenAddress,
-    amount!.toString(),
-    tokenDetails.priceUsd.toString()
-  );
+    await updatePositionOnSell(
+      user.id,
+      walletId,
+      tokenAddress,
+      (amount ?? 0).toString(),
+      tokenDetails.priceUsd.toString()
+    );
+  }
 
   return {
     status: true,

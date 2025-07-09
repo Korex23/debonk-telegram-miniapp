@@ -10,6 +10,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const result = await withdrawSol(telegramId, amount, destination);
-  return NextResponse.json(result);
+  try {
+    const result = await withdrawSol(telegramId, amount, destination);
+    return NextResponse.json({ ...result, success: true });
+  } catch (err) {
+    console.error("❌ Withdrawal failed:", err);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return NextResponse.json(
+      { success: false, error: errorMessage },
+      { status: 500 }
+    );
+  }
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
 import { useWithdrawStore } from "@/stores/useWithdrawStore";
 import { useRouter } from "next/navigation";
+import React, { useState, useMemo } from "react";
 import { IoArrowBack } from "react-icons/io5";
 
 const SelectWallet: React.FC = () => {
@@ -35,7 +35,7 @@ const SelectWallet: React.FC = () => {
   }, [walletInput, walletHistory]);
 
   return (
-    <div className="flex flex-col items-center justify-center bg-[#080808] w-full max-w-[360px] max-h-screen overflow-y-auto custom-scroll text-white px-4 py-6 relative">
+    <div className="flex flex-col items-center justify-center bg-[#080808] w-[98%] max-w-[400px] max-h-screen overflow-y-auto custom-scroll text-white px-4 py-6 relative">
       <button
         className="absolute top-4 left-4 text-white opacity-80 hover:opacity-100"
         onClick={() => router.back()}

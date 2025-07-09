@@ -1,8 +1,5 @@
 import { SwapData } from "../bridge/types";
-import { BOT_USERNAME } from "./constants/server";
-import { getSolPrice, getTokenDetails } from "./helper";
-import { PNLData } from "./pnlCard";
-import { Prisma, PrismaClient, Swap } from "@prisma/client";
+import { PrismaClient, Swap } from "@prisma/client";
 import { Transaction } from "@prisma/client";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
@@ -12,7 +9,8 @@ export { prisma };
 
 export const getUserFromTelegramId = async (telegramId: string) => {
   try {
-    const user = await prisma.user.findUnique({
+    // First try to find existing user
+    let user = await prisma.user.findUnique({
       where: { telegramId },
       include: {
         wallet: true,
@@ -20,17 +18,25 @@ export const getUserFromTelegramId = async (telegramId: string) => {
         positions: true,
       },
     });
+
+    // If user doesn't exist, create one
     if (!user?.id) {
-      const user = await prisma.user.upsert({
+      user = await prisma.user.upsert({
         where: { telegramId: telegramId.toString() },
         update: {},
         create: { telegramId: telegramId.toString() },
+        include: {
+          wallet: true,
+          transactions: true,
+          positions: true,
+        },
       });
     }
 
     return user;
   } catch (error) {
     console.log("error: ", error);
+    throw error; // You should throw the error to handle it upstream
   }
 };
 

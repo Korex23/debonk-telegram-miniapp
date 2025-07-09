@@ -61,7 +61,6 @@ export async function getReferralDetails(telegramId: string) {
   return {
     userId: user.id,
     referralLink: linkMessage.link,
-    referralMessage: linkMessage.text,
     profitSummary,
   };
 }

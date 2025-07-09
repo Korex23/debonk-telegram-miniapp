@@ -1,51 +1,69 @@
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface WithdrawStore {
   selectedWallet: string;
   walletHistory: string[];
   amount: number;
+  amountLamports: number;
   searchWalletFromHistory: (wallet: string) => void;
   selectAddress: (wallet: string) => void;
   setAmount: (amount: number) => void;
+  setSucessfull: () => void;
   addToWalletHistory: (wallet: string) => void;
+  successfull: boolean;
 }
 
-export const useWithdrawStore = create<WithdrawStore>((set) => ({
-  selectedWallet: "",
-  walletHistory: [
-    "0x1234567890abcdef",
-    "0xabcdef1234567890",
-    "0x9876543210fedcba",
-    "0x9876543210fedcb6",
-    "0x9876543210fedcbd",
-  ], // Pre-populated wallet history
-  amount: 0,
+export const useWithdrawStore = create<WithdrawStore>()(
+  persist(
+    (set) => ({
+      selectedWallet: "",
+      walletHistory: [],
+      amount: 0,
+      amountLamports: 0,
+      successfull: false,
 
-  searchWalletFromHistory: (wallet) => {
-    set((state) => ({
-      walletHistory: state.walletHistory.includes(wallet)
-        ? state.walletHistory
-        : [...state.walletHistory, wallet], // Avoid duplicates
-    }));
-  },
+      searchWalletFromHistory: (wallet) => {
+        set((state) => ({
+          walletHistory: state.walletHistory.includes(wallet)
+            ? state.walletHistory
+            : [...state.walletHistory, wallet],
+        }));
+      },
 
-  selectAddress: (wallet) => {
-    set(() => ({
-      selectedWallet: wallet, // Set selected wallet
-    }));
-  },
+      selectAddress: (wallet) => {
+        set(() => ({
+          selectedWallet: wallet,
+        }));
+      },
 
-  setAmount: (amount) => {
-    set(() => ({
-      amount: amount, // Update transfer amount
-    }));
-  },
+      setSucessfull: () => {
+        set(() => ({
+          successfull: true,
+        }));
+      },
 
-  addToWalletHistory: (wallet) => {
-    set((state) => ({
-      walletHistory: state.walletHistory.includes(wallet)
-        ? state.walletHistory
-        : [...state.walletHistory, wallet], // Add after withdrawal
-    }));
-  },
-}));
+      setAmount: (amount) => {
+        set(() => ({
+          amount,
+          amountLamports: amount * LAMPORTS_PER_SOL,
+        }));
+      },
+
+      addToWalletHistory: (wallet) => {
+        set((state) => ({
+          walletHistory: state.walletHistory.includes(wallet)
+            ? state.walletHistory
+            : [...state.walletHistory, wallet],
+        }));
+      },
+    }),
+    {
+      name: "withdraw-store", // localStorage key
+      partialize: (state) => ({
+        walletHistory: state.walletHistory, // only persist walletHistory
+      }),
+    }
+  )
+);

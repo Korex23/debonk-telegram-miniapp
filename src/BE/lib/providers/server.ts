@@ -22,11 +22,11 @@ import { HELIUS_RPC_HTTPS } from "@/BE/lib/constants/server";
 import { RPC_HTTPS_URLS } from "@/BE/lib/constants/server";
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
 import * as jup from "@jup-ag/api";
-import { Wallet } from "@project-serum/anchor";
 import {
   getAccount,
   getAssociatedTokenAddress,
   Account,
+  getMint,
 } from "@solana/spl-token";
 import {
   Connection,
@@ -41,7 +41,6 @@ import {
   VersionedTransaction,
   PublicKeyInitData,
   MessageV0,
-  ParsedAccountData,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import * as bip39 from "bip39";
@@ -101,6 +100,7 @@ export class MasterSolSmartWalletClass {
       new PublicKey(address);
       return true;
     } catch (error) {
+      console.log(error);
       return false;
     }
   }
@@ -112,71 +112,69 @@ export class MasterSolSmartWalletClass {
       blockhash: string;
       lastValidBlockHeight: number;
     }>,
-    isDevnet: Boolean
+    isDevnet: boolean
   ) {
-    let status = false;
+    const transaction = VersionedTransaction.deserialize(deserializedBuffer);
 
-    let transaction = VersionedTransaction.deserialize(deserializedBuffer);
+    // ✅ Patch the blockhash before signing
+    transaction.message.recentBlockhash = latestBlockhash.blockhash;
+
+    // ✅ Sign with the actual keypair
     transaction.sign(senderKeypairs);
-    let signature;
 
-    let explorerUrl = "";
+    const signature = bs58.encode(transaction.signatures[0]);
+    const explorerUrl = isDevnet
+      ? `https://explorer.solana.com/tx/${signature}?cluster=devnet`
+      : `https://solscan.io/tx/${signature}`;
 
-    console.log("sending transaction...");
+    console.log("Simulating transaction...");
 
-    // We first simulate whether the transaction would be successful
-    const { value: simulatedTransactionResponse } =
-      await connection.simulateTransaction(transaction, {
-        replaceRecentBlockhash: true,
-        commitment: "processed",
-      });
-    const { err, logs } = simulatedTransactionResponse;
-
-    if (err) {
-      // Simulation error, we can check the logs for more details
-      // If you are getting an invalid account error, make sure that you have the input mint account to actually swap from.
-      console.error("Simulation Error:");
-      console.error(err);
-
-      console.error(logs);
-
-      return { status, error: err };
-    }
-
-    // Execute the transaction
-
-    const serializedTransaction = Buffer.from(transaction.serialize());
-    const blockhash = transaction.message.recentBlockhash;
-    console.log("blockhash: ", blockhash);
-
-    const transactionResponse = await transactionSenderAndConfirmationWaiter({
-      connection,
-      serializedTransaction,
-      blockhashWithExpiryBlockHeight: {
-        blockhash,
-        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-      },
+    const simulation = await connection.simulateTransaction(transaction, {
+      commitment: "processed",
     });
 
-    // If we are not getting a response back, the transaction has not confirmed.
-    if (!transactionResponse) {
-      console.error("Transaction not confirmed");
-      //!WE SHOULD RETRY THE TRANSACTION AGAIN HERE
+    if (simulation.value.err) {
+      console.error("❌ Simulation error:", simulation.value.err);
+      console.log("🧪 Simulation logs:");
+      console.dir(simulation.value.logs, { depth: null });
 
-      throw new TransactionNotConfirmedError({});
+      return {
+        status: false,
+        error: simulation.value.err,
+        logs: simulation.value.logs,
+      };
     }
 
-    if (transactionResponse.meta?.err) {
-      console.error(transactionResponse.meta?.err);
-    }
-    transactionResponse.transaction.signatures;
+    console.log("✅ Simulation passed, sending transaction...");
 
-    explorerUrl = isDevnet
-      ? `https://explorer.solana.com/tx/${transactionResponse.transaction.signatures}?cluster=devnet`
-      : `https://solscan.io/tx/${transactionResponse.transaction.signatures}`;
-    console.log("View transaction on explorer:", explorerUrl);
-    status = true;
-    return { explorerUrl, status };
+    const serialized = transaction.serialize();
+    const txid = await connection.sendRawTransaction(serialized, {
+      skipPreflight: false,
+      preflightCommitment: "processed",
+    });
+
+    console.log("⏳ Waiting for confirmation...");
+
+    const confirmation = await connection.confirmTransaction(
+      {
+        signature: txid,
+        blockhash: latestBlockhash.blockhash,
+        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      },
+      "confirmed"
+    );
+
+    if (confirmation?.value?.err) {
+      console.error("❌ Transaction failed:", confirmation.value.err);
+      throw new TransactionNotConfirmedError({
+        reason: confirmation.value.err.toString(),
+      });
+    }
+
+    console.log("✅ Transaction confirmed.");
+    console.log("🔗 Explorer:", explorerUrl);
+
+    return { status: true, explorerUrl, txHash: txid };
   }
 
   async _solSendTransaction(
@@ -240,7 +238,7 @@ export class MasterSolSmartWalletClass {
       }),
     ];
 
-    let latestBlockhash = await connection.getLatestBlockhash();
+    const latestBlockhash = await connection.getLatestBlockhash();
 
     const messageV0 = new TransactionMessage({
       payerKey: senderKeypair.publicKey,
@@ -296,7 +294,7 @@ export class MasterSolSmartWalletClass {
     },
     sendersPrivateKeys: Uint8Array[]
   ) {
-    let connection: Connection = this.connection;
+    const connection: Connection = this.connection;
 
     let recipientPublicKey: PublicKey;
     try {
@@ -392,7 +390,6 @@ export class MasterSolSmartWalletClass {
      * @param addresses this is the list of All addresses that exist
      */
 
-    let status = false;
     let addressThatHasBalance;
     try {
       addressThatHasBalance = await this.getAddressThatHasBalnce(
@@ -431,7 +428,6 @@ export class MasterSolSmartWalletClass {
     } catch (error) {
       console.log("error: not a valid address ", error);
     }
-    let status: boolean = false;
     let addressThatHasBalance: IAddress[] | undefined;
     try {
       addressThatHasBalance = await this.getAddressThatHasBalnce(
@@ -562,7 +558,7 @@ export class MasterSolSmartWalletClass {
       );
       throw new Error(String(error));
     }
-    const senderListLeyPair = [];
+    // const senderListLeyPair = [];
 
     const GAS_FEE = 5005000;
     // request a specific compute unit budget
@@ -652,7 +648,7 @@ export class MasterSolSmartWalletClass {
 
   //HELPERS
   solGetMultiplePublicKeyFromSeed(start: number, end: number) {
-    let pubkeys: string[] = [];
+    const pubkeys: string[] = [];
     for (let i = start; i <= end; i++) {
       const publicKey = this.solGetPublicKeyFromSeed(i);
       pubkeys.push(publicKey);
@@ -660,7 +656,7 @@ export class MasterSolSmartWalletClass {
     return pubkeys;
   }
   solAddressFromSeedMultiple(start: number, end: number) {
-    let addresses: IAddress[] = [];
+    const addresses: IAddress[] = [];
     for (let i = start; i <= end; i++) {
       const _address = this.solAddressFromSeed(i);
       const address = {
@@ -744,6 +740,8 @@ export class UserSolSmartWalletClass {
       new PublicKey(address);
       return true;
     } catch (error) {
+      console.log(error);
+
       return false;
     }
   }
@@ -756,6 +754,8 @@ export class UserSolSmartWalletClass {
     try {
       publicKey = new PublicKey(address); // this will throw if invalid
     } catch (e) {
+      console.log(e);
+
       throw new Error(
         `The address passed is not a valid Solana address: ${address}`
       );
@@ -764,23 +764,25 @@ export class UserSolSmartWalletClass {
     try {
       const balance = await connection.getBalance(publicKey);
       return balance;
-    } catch (error: any) {
-      const message = error?.message || "";
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        const message = error?.message || "";
 
-      console.error("Failed to fetch balance:", message);
+        console.error("Failed to fetch balance:", message);
 
-      if (message.includes("401") || message.includes("Unauthorized")) {
-        throw new Error(
-          "Unauthorized access to Solana RPC. Check your API key or RPC config."
-        );
+        if (message.includes("401") || message.includes("Unauthorized")) {
+          throw new Error(
+            "Unauthorized access to Solana RPC. Check your API key or RPC config."
+          );
+        }
+
+        throw new Error(`Unknown error while fetching balance: ${message}`);
       }
-
-      throw new Error(`Unknown error while fetching balance: ${message}`);
     }
   };
 
   static getTokenPrice = async (token: string) => {
-    const url = `https://api.jup.ag/price/v2?ids=${token},${SOL_CONTRACT}`;
+    const url = `https://lite-api.jup.ag/price/v2?ids=${token},${SOL_CONTRACT}`;
     const priceResponse = await (await fetch(url)).json();
     console.log("priceResponse: ", priceResponse);
     const tokenUsdPrice = priceResponse.data[token].price;
@@ -791,12 +793,22 @@ export class UserSolSmartWalletClass {
   static getSolPrice = async () => {
     try {
       const res = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+        "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",
+        {
+          cache: "no-store", // Optional: avoid cached stale responses
+        }
       );
+
+      if (!res.ok) {
+        throw new Error(`HTTP error: ${res.status}`);
+      }
+
       const json = await res.json();
+
       const solUsdPrice = json?.solana?.usd;
 
-      if (typeof solUsdPrice !== "number") {
+      if (!solUsdPrice || typeof solUsdPrice !== "number") {
+        console.error("Invalid response shape:", JSON.stringify(json, null, 2));
         throw new Error("Invalid SOL price data from Coingecko");
       }
 
@@ -833,29 +845,29 @@ export class UserSolSmartWalletClass {
           inputMint: "So11111111111111111111111111111111111111112",
           outputMint: token,
           amount: Math.floor(amountLamports),
-          platformFeeBps: 10,
+          platformFeeBps: 5,
           onlyDirectRoutes: false,
           asLegacyTransaction: false,
           swapMode: "ExactIn",
           slippageBps: Math.floor(slippage * 100),
         });
       } else if (type === "SELL") {
-        const data = await this.connection.getParsedAccountInfo(
-          new PublicKey(token)
-        );
-        const dd = data.value?.data as ParsedAccountData;
-        console.log("decimals: ", dd.parsed.info.decimals);
-        const amountLamports = amount * 10 ** dd.parsed.info.decimals;
-        console.log("amountLamports: ", amountLamports);
+        const mintInfo = await getMint(this.connection, new PublicKey(token));
+        const decimals = mintInfo.decimals;
+        console.log("decimals:", decimals);
+
+        const amountLamports = amount * 10 ** decimals;
+        console.log("amountLamports:", amountLamports);
+
         quote = await jupiterQuoteApi.quoteGet({
-          inputMint: "So11111111111111111111111111111111111111112",
-          outputMint: token,
+          outputMint: "So11111111111111111111111111111111111111112",
+          inputMint: token,
           amount: Math.floor(amountLamports),
-          platformFeeBps: 10,
+          platformFeeBps: 5,
           onlyDirectRoutes: false,
           asLegacyTransaction: false,
           swapMode: "ExactIn",
-          slippageBps: Math.floor(slippage * 100),
+          slippageBps: Math.floor(slippage * 100) || 50, // Default to 0.5% if slippage is undefined
         });
       } else {
         throw new Error(`Invalid swap type: ${type}`);
@@ -893,7 +905,7 @@ export class UserSolSmartWalletClass {
       quoteResponse.swapTransaction,
       "base64"
     );
-    let latestBlockhash = await this.connection.getLatestBlockhash();
+    const latestBlockhash = await this.connection.getLatestBlockhash();
 
     const { explorerUrl, status, error } =
       await MasterSolSmartWalletClass.createSendConfirmRetryDeserializedTransaction(
@@ -917,8 +929,8 @@ export class UserSolSmartWalletClass {
   };
   getSwapObj = async (
     wallet: { publicKey: PublicKey },
-    quote: QuoteResponse,
-    token?: string
+    quote: QuoteResponse
+    // token?: string
   ) => {
     const swapObj = await jupiterQuoteApi.swapPost({
       swapRequest: {
@@ -973,18 +985,18 @@ export class UserSolSmartWalletClass {
   };
 
   sell = async (params: SellTokenParams | SellTokenInSolParams) => {
-    //we need to handle the percentage sell here
-    // Validate percentToSell
     let amountToSell;
     let status = false;
     let result: unknown;
     let feesAmount = 0;
     const maxRetry = 3;
-    let count = 0;
+    const DEFAULT_SLIPPAGE = 0.5; // default slippage in %
+
     try {
       const { tokenUsdPrice, tokenSolPrice } = await this.getTokenPrice(
         params.token
       );
+
       if (isSellTokenParams(params)) {
         if (
           params.percentToSell === undefined ||
@@ -999,65 +1011,86 @@ export class UserSolSmartWalletClass {
         if (!balance || balance < 1) {
           throw new Error("Insufficient balance.");
         }
-        amountToSell = balance * (params.percentToSell ?? 0 / 100);
-        //i want the fees in sol
-        feesAmount = tokenSolPrice * amountToSell * (1 / 100);
+
+        amountToSell = Number(
+          (balance * (params.percentToSell / 100)).toFixed(6)
+        );
+        feesAmount = tokenSolPrice * amountToSell * 0.01; // 1% fee in SOL
       } else if (isSellTokenInSolParams(params)) {
         console.log("tokenSolPrice: ", tokenSolPrice);
         console.log("priceOfToken: ", tokenUsdPrice);
-        amountToSell = Number(params.amountToSellInSol) / tokenSolPrice;
-        feesAmount = Number(params.amountToSellInSol) * (1 / 100);
+
+        amountToSell = Number(
+          (Number(params.amountToSellInSol) / tokenSolPrice).toFixed(6)
+        );
+        feesAmount = Number(params.amountToSellInSol) * 0.01;
       } else {
         throw new Error("Invalid params.");
       }
+
       console.log("amountToSell: ", amountToSell);
-      try {
-        result = await this._swap(
-          params.token,
-          amountToSell,
-          "SELL",
-          params.slippage
-        );
 
-        // we collect our fees here
-        console.log("feesAmount: ", feesAmount);
+      const slippage = params.slippage ?? DEFAULT_SLIPPAGE;
+      let retries = 0;
+
+      while (!status && retries < maxRetry) {
         try {
-          // i want to wait for 30 seconds before running this part
-          //???I HAVE tried using jupiter to collect the fees
-          new Promise((resolve) =>
-            setTimeout(() => {
-              this.withdrawSol(feesAmount, DEV_SOL_WALLET).then((result) => {
-                console.log("Fees Deducted Successfully: ", result);
-                if (result) {
-                  creditReferral(this.userAddress, feesAmount).then(
-                    (result) => {
-                      console.log("Referral Credited Successfully: ", result);
-                    }
-                  );
-                }
-
-                //we will just assume that the the result is success and we will credit the referrals here.
-              });
-            }, 10000)
+          result = await this._swap(
+            params.token,
+            amountToSell,
+            "SELL",
+            slippage
           );
+          status = true;
         } catch (error) {
-          console.log("error with collecting fees: ", error);
-        }
-
-        status = true;
-      } catch (error) {
-        if (error instanceof TransactionNotConfirmedError) {
-          //we want to retry transaction not confirmed error
-          //let us just try it one more time
-          console.log("retrying transaction not confirmed error: ");
-          await this._swap(params.token, amountToSell, "SELL", params.slippage);
-          count++;
+          if (error instanceof TransactionNotConfirmedError) {
+            retries++;
+            console.warn(`Retrying transaction... attempt ${retries}`);
+            continue;
+          } else {
+            throw error;
+          }
         }
       }
+
+      if (!status) {
+        throw new Error("Failed to complete transaction after retries.");
+      }
+
+      console.log("feesAmount: ", feesAmount);
+
+      await new Promise((resolve) =>
+        setTimeout(async () => {
+          try {
+            const feeResult = await this.withdrawSol(
+              feesAmount,
+              DEV_SOL_WALLET
+            );
+            console.log("Fees Deducted Successfully: ", feeResult);
+
+            if (feeResult) {
+              const referralResult = await creditReferral(
+                this.userAddress,
+                feesAmount
+              );
+              console.log("Referral Credited Successfully: ", referralResult);
+            }
+
+            resolve(true);
+          } catch (err) {
+            console.error(
+              "Error during fee deduction or referral credit:",
+              err
+            );
+            resolve(false);
+          }
+        }, 10000)
+      );
     } catch (error) {
       if (error instanceof SLippageExceedingError) {
         throw error;
       }
+
       if (
         typeof error === "object" &&
         error !== null &&
@@ -1069,12 +1102,12 @@ export class UserSolSmartWalletClass {
         throw error;
       }
 
-      console.log("error: ", error);
-      console.log("error: ", error);
+      console.error("error: ", error);
     }
 
     return { status, result, amountToSell };
   };
+
   getTokenBalance = async (token: string) => {
     try {
       // Get the balance from the token account
@@ -1091,18 +1124,47 @@ export class UserSolSmartWalletClass {
       console.log("tokenBalanceDecimal: ", tokenBalanceDecimal);
       return tokenBalanceDecimal;
     } catch (error) {
+      console.log(error);
+
       return 0;
     }
   };
-
-  withdrawSol = async (amount: number, destination: string) => {
+  withdrawSol = async (lamports: number, destination: string) => {
     if (!UserSolSmartWalletClass.validateSolAddress(destination)) {
-      throw new Error(`the destination address is not valid : ${destination}`);
+      throw new Error(`The destination address is not valid: ${destination}`);
+    }
+
+    const connection = new Connection(HELIUS_RPC_HTTPS, "confirmed");
+    const senderPublicKey = this.keyPair.publicKey;
+
+    const senderBalance = await connection.getBalance(senderPublicKey);
+    const feeBuffer = 5000; // small buffer
+    const totalNeeded = lamports + feeBuffer;
+
+    if (senderBalance < totalNeeded) {
+      throw new Error(
+        `Insufficient funds: balance is ${senderBalance} lamports, but ${totalNeeded} lamports required (amount + fee).`
+      );
+    }
+
+    const destinationPubkey = new PublicKey(destination);
+    const recipientInfo = await connection.getAccountInfo(destinationPubkey);
+    console.log(recipientInfo);
+    const recipientIsNew = !recipientInfo; // ✅ fixed here
+    console.log(recipientIsNew);
+
+    const rentExemptionMinimum =
+      await connection.getMinimumBalanceForRentExemption(0); // can be fetched dynamically if needed
+
+    if (recipientIsNew && lamports < rentExemptionMinimum) {
+      throw new Error(
+        `Recipient account does not exist. To create it, you must send at least ${rentExemptionMinimum} lamports.`
+      );
     }
 
     const { explorerUrl } = await this._solSendTransaction(
       destination,
-      amount,
+      lamports,
       this.keyPair.secretKey
     );
 
@@ -1134,69 +1196,71 @@ export class UserSolSmartWalletClass {
     }
   };
 
-  //helpers
   async _solSendTransaction(
     recipientAddress: string,
-    amount: number,
+    lamportsToSend: number,
     senderSecretKey: Uint8Array
   ) {
-    /**
-     * internal method for sending sol transaction
-     */
     const connection = this.connection;
     const senderKeypair = Keypair.fromSecretKey(senderSecretKey);
+    const recipientPubkey = new PublicKey(recipientAddress);
 
     try {
-      new PublicKey(recipientAddress);
+      recipientPubkey.toBase58(); // Validate address
     } catch (error) {
-      console.log(
-        "the recipientAddress is not a valid public key",
-        recipientAddress
-      );
-      throw new Error(String(error));
+      console.log(error);
+
+      throw new Error(`❌ Invalid recipient address: ${recipientAddress}`);
     }
 
     const senderBalance = await connection.getBalance(senderKeypair.publicKey);
-    console.log("senderBalance: ", senderBalance);
+    const estimatedFee = 20000;
+    const rentExemptionMin = await connection.getMinimumBalanceForRentExemption(
+      0
+    );
+    const recipientInfo = await connection.getAccountInfo(recipientPubkey);
+    const recipientIsNew = !recipientInfo;
+    console.log(recipientIsNew);
+    console.log(recipientInfo);
 
-    if (senderBalance < amount * LAMPORTS_PER_SOL) {
-      console.log(
-        "insufficient funds: sender balance is less than the amount to send"
-      );
+    const totalRequired =
+      lamportsToSend + estimatedFee + (recipientIsNew ? rentExemptionMin : 0);
+
+    console.log("🧾 Transaction Debug Info:");
+    console.log("➡️ Destination:", recipientAddress);
+    console.log("🔁 Lamports to send:", lamportsToSend);
+    console.log("⚙️ Estimated fee:", estimatedFee);
+    console.log("🏠 Rent exemption minimum:", rentExemptionMin);
+    console.log("📦 Total lamports required:", totalRequired);
+    console.log("👤 Sender balance:", senderBalance);
+
+    if (senderBalance < totalRequired) {
       throw new Error(
-        "insufficient funds: sender balance is less than the amount to send"
+        `❌ Insufficient balance. Need at least ${totalRequired} lamports (amount + fee${
+          recipientIsNew ? " + rent" : ""
+        }), but have ${senderBalance}.`
       );
     }
-    const amountPlusFees = amount * LAMPORTS_PER_SOL + 20045;
 
-    if (senderBalance < amountPlusFees) {
-      console.log(
-        "insufficient funds + gass : sender balance is less than the amount  Plus gass to send"
-      );
-      throw new Error(
-        "insufficient funds + gass : sender balance is less than the amount  Plus gass to send"
-      );
-    }
-    // request a specific compute unit budget
     const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
       units: 1500,
     });
 
-    // set the desired priority fee
     const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
       microLamports: 30000,
     });
+
     const instructions: TransactionInstruction[] = [
       addPriorityFee,
       modifyComputeUnits,
       SystemProgram.transfer({
         fromPubkey: senderKeypair.publicKey,
-        toPubkey: new PublicKey(recipientAddress),
-        lamports: Math.floor(LAMPORTS_PER_SOL * amount),
+        toPubkey: recipientPubkey,
+        lamports: lamportsToSend,
       }),
     ];
 
-    let latestBlockhash = await connection.getLatestBlockhash();
+    const latestBlockhash = await connection.getLatestBlockhash();
 
     const messageV0 = new TransactionMessage({
       payerKey: senderKeypair.publicKey,
@@ -1219,61 +1283,141 @@ export class UserSolSmartWalletClass {
     messageV0: MessageV0,
     senderKeypairs: Keypair[],
     connection: Connection,
-    latestBlockhash: Readonly<{
+    latestBlockhash: {
       blockhash: string;
       lastValidBlockHeight: number;
-    }>,
-    isDevnet: Boolean,
+    },
+    isDevnet: boolean,
     feePayerKeypair: Keypair,
-    initialInstructions: TransactionInstruction[]
-  ) {
-    let status = false;
-    const transaction = new VersionedTransaction(messageV0);
-    transaction.sign(senderKeypairs);
-    let signature;
-    let retries = 5;
-    let explorerUrl = "";
+    initialInstructions: TransactionInstruction[],
+    retryCount = 0
+  ): Promise<{
+    explorerUrl: string;
+    status: boolean;
+    signature: string | undefined;
+  }> {
+    const MAX_RETRIES = 5;
+    const txAttempt = retryCount + 1;
 
-    const serializedTransaction = Buffer.from(transaction.serialize());
-    const blockhash = transaction.message.recentBlockhash;
-    const transactionResponse = await transactionSenderAndConfirmationWaiter({
-      connection,
-      serializedTransaction,
-      blockhashWithExpiryBlockHeight: {
-        blockhash,
-        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-      },
-    });
+    console.log(`⚡ Attempt ${txAttempt}/${MAX_RETRIES}`);
 
-    // If we are not getting a response back, the transaction has not confirmed.
-    if (!transactionResponse) {
-      console.error("Transaction not confirmed: trying one more time...");
-      let latestBlockhash = await connection.getLatestBlockhash();
-      await this.createSendConfirmRetryTransaction(
-        messageV0,
+    try {
+      const transaction = new VersionedTransaction(messageV0);
+      transaction.sign(senderKeypairs);
+
+      const blockhash = messageV0.recentBlockhash;
+      const txSignature = bs58.encode(transaction.signatures[0]);
+      const explorerUrl = isDevnet
+        ? `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
+        : `https://solscan.io/tx/${txSignature}`;
+
+      console.log(`Using blockhash: ${blockhash}`);
+      console.log(`🧪 Simulating transaction...`);
+
+      const simulation = await connection.simulateTransaction(transaction, {
+        replaceRecentBlockhash: true,
+        commitment: "processed",
+      });
+
+      if (simulation.value.err) {
+        console.error(
+          "❌ Simulation error:",
+          simulation.value.err,
+          simulation.value.logs
+        );
+        throw new Error(
+          `Simulation failed: ${JSON.stringify(simulation.value.err)}`
+        );
+      }
+
+      console.log(`✅ Simulation passed. Sending transaction...`);
+      const serializedTransaction = Buffer.from(transaction.serialize());
+
+      const transactionResponse = await transactionSenderAndConfirmationWaiter({
+        connection,
+        serializedTransaction,
+        blockhashWithExpiryBlockHeight: {
+          blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        },
+      });
+
+      if (transactionResponse && !transactionResponse.meta?.err) {
+        console.log(`✅ Transaction confirmed! View at: ${explorerUrl}`);
+        return { explorerUrl, status: true, signature: txSignature };
+      }
+
+      // Fallback: attempt polling
+      console.warn("⚠️ No confirmation. Initiating fallback polling...");
+      for (let i = 0; i < 10; i++) {
+        const status = await connection.getSignatureStatus(txSignature);
+        const confirmed = status?.value?.confirmationStatus;
+        const err = status?.value?.err;
+
+        if (confirmed === "confirmed" || confirmed === "finalized") {
+          console.log(`✅ TX ${txSignature} confirmed via polling.`);
+          return { explorerUrl, status: true, signature: txSignature };
+        }
+
+        if (err) {
+          console.error("❌ On-chain error during fallback:", err);
+          return { explorerUrl, status: false, signature: txSignature };
+        }
+
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+
+      // Final check before giving up
+      console.warn("🕓 Polling timed out. Performing final status check...");
+      const finalStatus = await connection.getSignatureStatus(txSignature);
+      const finalConfirmed = finalStatus?.value?.confirmationStatus;
+      const finalError = finalStatus?.value?.err;
+
+      if (finalConfirmed === "confirmed" || finalConfirmed === "finalized") {
+        console.log(`✅ TX ${txSignature} confirmed via final check.`);
+        return { explorerUrl, status: true, signature: txSignature };
+      }
+
+      if (finalError) {
+        console.error("❌ Final error after polling:", finalError);
+        return { explorerUrl, status: false, signature: txSignature };
+      }
+
+      console.error("❌ Unable to confirm transaction after all attempts.");
+      return { explorerUrl, status: false, signature: txSignature };
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(
+          `❌ Error on attempt ${txAttempt}: ${error?.message || error}`
+        );
+      }
+
+      if (txAttempt >= MAX_RETRIES) {
+        console.error("🔥 Max retries reached. Giving up.");
+        throw new Error(`Transaction failed after ${MAX_RETRIES} attempts.`);
+      }
+
+      const delayMs = Math.pow(2, retryCount) * 1000;
+      console.warn(`⏳ Retrying in ${delayMs}ms...`);
+      await new Promise((r) => setTimeout(r, delayMs));
+
+      const newBlockhash = await connection.getLatestBlockhash();
+      const newMessageV0 = new TransactionMessage({
+        payerKey: feePayerKeypair.publicKey,
+        recentBlockhash: newBlockhash.blockhash,
+        instructions: initialInstructions,
+      }).compileToV0Message();
+
+      return await this.createSendConfirmRetryTransaction(
+        newMessageV0,
         senderKeypairs,
         connection,
-        latestBlockhash,
-        false,
+        newBlockhash,
+        isDevnet,
         feePayerKeypair,
-        initialInstructions
+        initialInstructions,
+        retryCount + 1
       );
     }
-
-    if (transactionResponse?.meta?.err) {
-      console.error(transactionResponse?.meta?.err);
-    }
-    transactionResponse?.transaction.signatures;
-
-    explorerUrl = isDevnet
-      ? `https://explorer.solana.com/tx/${transactionResponse?.transaction.signatures}?cluster=devnet`
-      : `https://solscan.io/tx/${transactionResponse?.transaction.signatures}`;
-    console.log("View transaction on explorer:", explorerUrl);
-    status = true;
-    return {
-      explorerUrl,
-      status,
-      signature: transactionResponse?.transaction.signatures,
-    };
   }
 }

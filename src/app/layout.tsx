@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 // import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import BottomNav from "@/FE/common/BottomNavbar";
+import UserDataProvider from "@/FE/context/user-provider";
 import { Exo_2, Poppins } from "next/font/google";
 import Script from "next/script";
-import BottomNav from "@/FE/common/BottomNavbar";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -37,11 +38,14 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
       </head>
+
       <body
         className={`${exo2.variable} ${poppins.variable} antialiased h-screen overflow-y-auto bg-[#0B0B0B]`}
       >
-        <main className="pb-12 min-h-full">{children}</main>
-        <BottomNav />
+        <UserDataProvider>
+          <main className="pb-12 min-h-full">{children}</main>
+          <BottomNav />
+        </UserDataProvider>
       </body>
     </html>
   );

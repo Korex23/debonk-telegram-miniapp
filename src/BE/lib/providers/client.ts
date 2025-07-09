@@ -18,6 +18,8 @@ export function validateSolAddress(address: string): boolean {
     new PublicKey(address);
     return true;
   } catch (error) {
+    console.log(error);
+
     return false;
   }
 }

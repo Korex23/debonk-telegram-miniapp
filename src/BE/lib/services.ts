@@ -52,17 +52,22 @@ export async function buyToken(
   return await validateAmountGetTokenAndBuy(amount, telegramId, tokenAddress);
 }
 
+// In sellToken function, ensure slippage is passed through
 export async function sellToken(
   telegramId: string,
   tokenAddress: string,
   amountOrType: "AMOUNT" | "PERCENT",
-  percent?: PercentRange
+  percent?: PercentRange,
+  amount?: number,
+  slippage: number = 0.5 // Default slippage
 ) {
   return await validateAmountGetTokenAndSell(
     telegramId,
     tokenAddress,
     amountOrType,
-    percent
+    percent,
+    amount,
+    slippage
   );
 }
 
@@ -71,7 +76,10 @@ export async function sellToken(
 export async function getActivePositions(telegramId: string) {
   const user = await getUserFromTelegramId(telegramId);
   const positions = user?.positions?.filter((p) => !p.isSimulation) ?? [];
+  const wallet = user?.wallet.find((w) => w.isPrimary);
   const solPrice = await getSolPrice();
+
+  if (!wallet) throw new Error("No primary wallet found.");
 
   return await Promise.all(
     positions.map(async (position) => {
@@ -79,27 +87,33 @@ export async function getActivePositions(telegramId: string) {
       if (user?.id === undefined) {
         throw new Error("User ID is undefined.");
       }
-      const pnlUsd = await calculateProfitLoss(
+      const PNL_usd = await calculateProfitLoss(
         user.id,
-        position.walletId,
+        wallet.id,
         position.tokenAddress,
         tokenDetails.priceUsd.toString()
       );
-      const pnlSol = pnlUsd / solPrice;
-      const pnlPercent =
-        (pnlSol /
-          (parseInt(position.amountHeld) * parseFloat(position.avgBuyPrice))) *
+      const PNL_sol = PNL_usd / solPrice;
+      const PNL_Sol_percent = (
+        (PNL_sol /
+          (parseFloat(position.amountHeld) *
+            parseFloat(position.avgBuyPrice))) *
         solPrice *
-        100;
+        100
+      ).toFixed(2);
 
       return {
         tokenAddress: position.tokenAddress,
         tokenTicker: position.tokenTicker,
-        amountHeld: position.amountHeld,
-        pnlUsd,
-        pnlSol,
-        pnlPercent,
-        tokenDetails,
+        amountHeld: parseFloat(position.amountHeld),
+        currentPriceUsd: tokenDetails.priceUsd,
+        currentPriceSol: tokenDetails.priceNative,
+        tokenMC: tokenDetails.mc,
+        tokenSymbol: tokenDetails.symbol,
+        tokenLiquidity: tokenDetails.liquidityInUsd,
+        PNL_usd,
+        PNL_sol,
+        PNL_Sol_percent: Number(PNL_Sol_percent),
       };
     })
   );

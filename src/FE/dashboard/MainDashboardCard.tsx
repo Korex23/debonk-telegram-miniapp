@@ -1,7 +1,12 @@
 "use client";
 
-import { generateRandomCryptoAddress } from "@/utils/RandomCryptoAddress";
-import React, { useState, useEffect, useCallback } from "react";
+import { useUserData } from "../context/user-provider";
+import { generateRandomPosition } from "@/utils/RandomPositions";
+import { splitStringInMiddle } from "@/utils/lib";
+import Link from "next/link";
+import React, { useState, useEffect } from "react";
+import { CiCircleAlert } from "react-icons/ci";
+import { GiPlainCircle } from "react-icons/gi";
 import { IoCopySharp } from "react-icons/io5";
 import {
   PiHandWithdrawFill,
@@ -9,11 +14,6 @@ import {
   PiTestTubeFill,
 } from "react-icons/pi";
 import { SlRefresh } from "react-icons/sl";
-import { CiCircleAlert } from "react-icons/ci";
-import { GiPlainCircle } from "react-icons/gi";
-import { generateRandomPosition } from "@/utils/RandomPositions";
-import Link from "next/link";
-// import { useRouter } from "next/router";
 
 interface Button {
   label: string;
@@ -23,53 +23,39 @@ interface Button {
 }
 
 const MainDashboardCard: React.FC = () => {
-  const [address, setAddress] = useState<string>("");
-  const [price, setPrice] = useState<number | null>(null);
-  //   const [loading, setLoading] = useState<boolean>(false);
-  const [solBalance, setSolBalance] = useState<number>(0);
   const [unrealizedPNL, setUnrealizedPNL] = useState<number>(0);
-  const [shortenedAddress, setShortenedAddress] = useState<string>("");
-  const position = generateRandomPosition(); // Generate a random position
-  // const router = useRouter();
+  const { userData, handleSetSimulation, isSimulation } = useUserData();
+  const [showSimulationModal, setShowSimulationModal] =
+    useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>("");
+  const position = generateRandomPosition();
 
   useEffect(() => {
-    const fetchPrice = async () => {
-      try {
-        const res = await fetch(
-          "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
-        );
-        const data = await res.json();
-        setPrice(data.solana?.usd || null);
-      } catch (error) {
-        console.error("Error fetching price:", error);
-      }
-    };
-    fetchPrice();
-  }, []);
-
-  useEffect(() => {
-    // Simulate balance and unrealized PNL
-    setSolBalance(position.capital);
     setUnrealizedPNL(position.pnlPercentage);
-  }, []);
+  }, [position.pnlPercentage]);
 
-  const generateAddress = useCallback(() => {
-    // setLoading(true);
-    setAddress(generateRandomCryptoAddress());
-    setShortenedAddress(`${address.slice(0, 6)}...${address.slice(-4)}`);
-    console.log(shortenedAddress);
-    // console.log(address);
+  const toggleSimulation = () => {
+    const newMode = !isSimulation;
+    handleSetSimulation();
 
-    // setLoading(false);
-  }, []);
+    // Set modal message based on new mode
+    setModalMessage(
+      newMode
+        ? "You are now in Simulation Mode"
+        : "You are leaving Simulation Mode"
+    );
 
-  useEffect(() => {
-    generateAddress(); // Generate address on component mount
-  }, [generateAddress]);
+    setShowSimulationModal(true);
+
+    // Auto-hide modal after 2 seconds
+    setTimeout(() => {
+      setShowSimulationModal(false);
+    }, 2000);
+  };
 
   const handleCopyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
+    if (userData?.address) {
+      navigator.clipboard.writeText(userData.address);
       alert("Address copied to clipboard!");
     }
   };
@@ -94,11 +80,24 @@ const MainDashboardCard: React.FC = () => {
     },
   ];
 
-  //   console.log(position.pnlColor);
-
   return (
-    <section className="mb-5 bg-[#3C3C3C3B] font-exo2 backdrop-blur-2xl border border-[#CC920F]/50 text-white shadow-md rounded-2xl p-4 w-full max-w-[360px] mx-auto space-y-4">
-      {/* Top Section: PNL + Simulation */}
+    <section className="mb-5 bg-[#3C3C3C3B] font-exo2 backdrop-blur-2xl border border-[#CC920F]/50 text-white shadow-md rounded-2xl p-4 w-full max-w-[390px] mx-auto space-y-4">
+      {/* Simulation Mode Modal */}
+      {showSimulationModal && (
+        <div className="fixed inset-0 z-50 flex items-center h-[80vh] justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-[#F2C94C] max-w-[90vw] w-[300px] sm:w-[360px] px-6 py-8 rounded-xl shadow-xl text-center animate-fade-in-out space-y-4">
+            <h2 className="text-black text-lg font-bold">Simulation Notice</h2>
+            <p className="text-black text-sm">{modalMessage}</p>
+            <button
+              onClick={() => setShowSimulationModal(false)}
+              className="mt-4 bg-black text-[#F2C94C] text-xs px-4 py-2 rounded-full hover:bg-gray-900 transition"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-start">
         <div className="space-y-1">
           <p className="text-xs font-light">
@@ -108,19 +107,29 @@ const MainDashboardCard: React.FC = () => {
             </span>
           </p>
           <p className="text-xs text-[#E3B419] font-light">
-            {price !== null ? `$${(solBalance * price).toFixed(2)}` : "$0.00"}
+            {isSimulation
+              ? `$${userData?.simulationUsd?.toLocaleString() ?? 0}`
+              : `$${userData?.solUsdBalance?.toLocaleString() ?? 0}`}
           </p>
         </div>
 
-        <button className="flex items-center gap-1 px-3 py-1 text-[11px] font-semibold text-[#CC920F] border border-[#CC920F] rounded-xl bg-[#1a1a1a]/40 hover:bg-[#2c2c2c] transition-all shadow-sm">
-          <PiTestTubeFill className="text-sm" /> Simulation
+        <button
+          className={`flex items-center gap-1 px-3 py-1 text-[11px] font-semibold rounded-xl transition-all shadow-sm ${
+            isSimulation
+              ? "bg-[#CC920F] text-black border border-[#CC920F] hover:bg-[#E3B419]"
+              : "text-[#CC920F] border border-[#CC920F] bg-[#1a1a1a]/40 hover:bg-[#2c2c2c]"
+          }`}
+          onClick={toggleSimulation}
+        >
+          <PiTestTubeFill className="text-sm" />
+          {isSimulation ? "Exit Simulation" : "Simulation"}
         </button>
       </div>
 
       {/* Wallet + Balance */}
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-2 text-xs text-[#CC920F]">
-          <span>{shortenedAddress}</span>
+          <span>{splitStringInMiddle(userData?.address ?? "", 5)}</span>
           <IoCopySharp
             className="cursor-pointer hover:opacity-80 transition text-base"
             onClick={handleCopyAddress}
@@ -128,10 +137,21 @@ const MainDashboardCard: React.FC = () => {
           />
         </div>
 
-        <h2 className="text-3xl font-semibold">{solBalance.toFixed(2)} SOL</h2>
+        <h2 className="text-3xl font-semibold">
+          {isSimulation
+            ? Number(userData?.simulationBalance ?? 0).toFixed(4)
+            : Number(userData?.balance ?? 0).toFixed(4)}{" "}
+          SOL
+        </h2>
 
         <p className="text-xs text-[#CC920F] flex items-center justify-center gap-1">
-          {price !== null ? `$${(solBalance * price).toFixed(2)}` : "$0.00"}
+          {isSimulation
+            ? `$${parseFloat(
+                String(userData?.simulationUsd ?? 0)
+              ).toLocaleString()}`
+            : `$${parseFloat(
+                String(userData?.solUsdBalance ?? 0)
+              ).toLocaleString()}`}
           <CiCircleAlert className="text-sm" />
         </p>
       </div>

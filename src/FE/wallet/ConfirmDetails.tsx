@@ -1,51 +1,93 @@
 "use client";
 
-import { useWithdrawStore } from "@/stores/useWithdrawStore";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import Loader from "../common/Loader";
-import Lottie from "lottie-react";
-import success from "@/assets/success.json";
 import error from "@/assets/error.json";
+import success from "@/assets/success.json";
+import { useWithdrawStore } from "@/stores/useWithdrawStore";
+import Lottie from "lottie-react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { IoArrowBack } from "react-icons/io5";
 
 const ConfirmDetails: React.FC = () => {
-  const { selectedWallet, amount, addToWalletHistory } = useWithdrawStore();
+  const {
+    selectedWallet,
+    amount,
+    amountLamports,
+    addToWalletHistory,
+    setSucessfull,
+  } = useWithdrawStore();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"success" | "error" | "">("");
   const [countdown, setCountdown] = useState(5);
+  const [txHash, setTxHash] = useState<string>("");
   const router = useRouter();
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setLoading(true);
+    console.log(amount, amountLamports, selectedWallet);
 
-    const delay = Math.random() * 1000 + 4000;
+    const startTime = Date.now();
 
-    setTimeout(() => {
-      const result = Math.random() < 0.5 ? "success" : "error";
-      setLoading(false);
-      setStatus(result as "success" | "error");
+    try {
+      // Make the actual withdrawal request
+      const res = await fetch("/api/telegram/withdraw", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          telegramId: "7023048964",
+          amount: amountLamports,
+          destination: selectedWallet,
+        }),
+      });
 
-      // Start countdown
-      let secondsLeft = 5;
-      setCountdown(secondsLeft);
+      if (!res.ok) {
+        throw new Error(`Withdrawal failed with status: ${res.status}`);
+      }
 
-      const countdownInterval = setInterval(() => {
-        secondsLeft -= 1;
-        setCountdown(secondsLeft);
+      const data = await res.json();
+      console.log(data);
 
-        if (secondsLeft === 0) {
-          clearInterval(countdownInterval);
+      // Ensure minimum loading time for better UX (1-2 seconds total)
+      const minLoadingTime = 1000;
+      const elapsed = Date.now() - startTime;
+      const remainingDelay = Math.max(0, minLoadingTime - elapsed);
 
-          if (result === "success") {
-            addToWalletHistory(selectedWallet);
-            router.push("/");
-          } else {
-            router.push("/withdraw");
-          }
+      setTimeout(() => {
+        setLoading(false);
+
+        if (data.success) {
+          setStatus("success");
+          setSucessfull();
+          addToWalletHistory(selectedWallet);
+          setTxHash(data.txId);
+
+          // Success countdown
+          let secondsLeft = 5; // Reduced from 5 to 3 for better UX
+          setCountdown(secondsLeft);
+
+          const timer = setInterval(() => {
+            secondsLeft -= 1;
+            setCountdown(secondsLeft);
+
+            if (secondsLeft <= 0) {
+              clearInterval(timer);
+              router.push("/");
+            }
+          }, 1000);
+        } else {
+          setStatus("error");
+          router.push("/withdraw");
         }
-      }, 1000);
-    }, delay);
+      }, remainingDelay);
+    } catch (error) {
+      console.error("Withdrawal error:", error);
+      setLoading(false);
+      setStatus("error");
+      router.push("/withdraw");
+    }
   };
 
   if (loading) {
@@ -75,6 +117,15 @@ const ConfirmDetails: React.FC = () => {
           <p className="text-sm mt-4 text-white/80">
             Your transaction was successful!
           </p>
+
+          <a
+            href={txHash}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-[#E6B911] underline mt-2 block break-all"
+          >
+            View on Solscan ↗
+          </a>
 
           <p className="text-xs text-gray-400 mt-2">
             Redirecting to homepage in {countdown} second
@@ -111,7 +162,7 @@ const ConfirmDetails: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center bg-[#080808] min-h-screen min-[370px]:w-[360px] w-[90vw] text-white relative">
+    <div className="flex flex-col items-center justify-center bg-[#080808] min-h-screen max-w-[400px] w-[98%] text-white relative">
       {/* Back Button */}
       <button
         className="absolute top-4 left-4 text-white opacity-80 hover:opacity-100 transition"

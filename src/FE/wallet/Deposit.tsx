@@ -1,29 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { IoArrowBack, IoCopySharp } from "react-icons/io5";
-import { QRCodeSVG } from "qrcode.react";
-import { generateRandomCryptoAddress } from "@/utils/RandomCryptoAddress";
+import { useUserData } from "../context/user-provider";
+import { splitStringInMiddle } from "@/utils/lib";
 import { useRouter } from "next/navigation";
+import { QRCodeSVG } from "qrcode.react";
+import React, { useState } from "react";
+import { IoArrowBack, IoCopySharp } from "react-icons/io5";
 
 const DepositPage = () => {
-  const [address, setAddress] = useState<string>("");
+  const { userData } = useUserData();
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const router = useRouter();
 
-  // Set your Solana deposit address here, for example:
-  useEffect(() => {
-    // Set a mock address for the example
-    setAddress(generateRandomCryptoAddress()); // Replace with actual address fetching logic
-  }, []);
-
   const handleCopyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
+    if (userData?.address) {
+      navigator.clipboard.writeText(userData.address);
       setIsCopied(true);
       setTimeout(() => {
         setIsCopied(false);
-      }, 2000); // Reset after 2 seconds
+      }, 2000);
     }
   };
 
@@ -32,7 +27,7 @@ const DepositPage = () => {
       try {
         await navigator.share({
           title: "Share Wallet Address",
-          text: address,
+          text: userData?.address,
         });
         console.log("Address shared successfully");
       } catch (error) {
@@ -65,7 +60,7 @@ const DepositPage = () => {
         <div className="flex justify-center">
           <div className="bg-black p-3 rounded-xl border border-[#2c2c2c]">
             <QRCodeSVG
-              value={address}
+              value={userData?.address ?? ""}
               size={160}
               fgColor="#E6B911"
               bgColor="#000000"
@@ -85,7 +80,9 @@ const DepositPage = () => {
 
         {/* Address Copy Box */}
         <div className="bg-[#E6B911] rounded-lg px-4 py-3 flex items-center justify-between text-black font-mono">
-          <span className="text-[11px]">{address}</span>
+          <span className="text-[11px]">
+            {splitStringInMiddle(userData?.address ?? "", 10)}
+          </span>
           <button onClick={handleCopyAddress}>
             <IoCopySharp className="text-black hover:opacity-70 transition" />
           </button>

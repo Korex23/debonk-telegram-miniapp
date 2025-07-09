@@ -38,20 +38,13 @@ export const solAddressValidator: Validator<string> = async (value: string) => {
     new PublicKey(xValue ?? "");
     status = true;
   } catch (error) {
+    console.log(error);
+
     if (xValue?.length === 44) {
       status = true;
     }
   }
   return status;
-};
-
-export interface NumberValidator extends Validator<number> {}
-
-export const numberValidator: NumberValidator = async (
-  value: number
-): Promise<boolean> => {
-  const amount: number = Number(value.toString());
-  return !!amount;
 };
 
 export const stringValidator: Validator<string> = async () => true;
@@ -73,11 +66,6 @@ export function createProgressBar(
     emptyLength
   )}`;
 }
-
-export const getPageNumberFromText = (messageText: string): number | null => {
-  const pageMatch = messageText.match(/Page: ([0-9]+)/);
-  return pageMatch?.[1] ? parseInt(pageMatch[1]) : null;
-};
 
 export const getTokenDetails = async (token: string): Promise<any> => {
   const isAddress = validateSolAddress(token);
@@ -152,24 +140,6 @@ export function getCurrentDate(): string {
 export const getTelegramIdFromText = (messageText: string): number | null => {
   const match = messageText.match(/TelegramId: ([0-9]+)/);
   return match?.[1] ? parseInt(match[1]) : null;
-};
-
-export const formatter = ({
-  decimal = 2,
-  style = "decimal",
-  currency = undefined,
-}: {
-  decimal?: number;
-  style?: string;
-  currency?: string;
-}) => {
-  return new Intl.NumberFormat(undefined, {
-    style: style as any,
-    currency,
-    maximumFractionDigits: decimal,
-    minimumFractionDigits: decimal,
-    useGrouping: true,
-  });
 };
 
 export const checkIfMessageIsSimulation = (messageText: string): boolean => {
