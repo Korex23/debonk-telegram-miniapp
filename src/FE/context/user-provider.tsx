@@ -88,91 +88,83 @@ const UserDataProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const getReferralDetails = async () => {
+      if (!telegramData?.id) return;
+
       const res = await fetch(
-        `/api/telegram/referral?telegramId=${telegramData?.id}`
+        `/api/telegram/referral?telegramId=${telegramData.id}`
       );
       const data = await res.json();
-
       setReferralInfo(data);
-      console.log(data);
-
-      console.log(referralInfo);
     };
 
     getReferralDetails();
-  }, [referralInfo, telegramData?.id]);
+  }, [telegramData?.id]);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
+      if (!telegramData?.id) return;
+
       setPageLoading(true);
+
       const res = await fetch("/api/telegram/start-user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          telegramId: `${telegramData?.id}`,
+          telegramId: `${telegramData.id}`,
         }),
       });
 
       const data = await res.json();
-
       setUserData(data);
-      console.log(data);
       setPageLoading(false);
     };
 
     fetchUserInfo();
-  }, [successfull, telegramData?.id]);
+  }, [telegramData?.id, successfull]);
 
   useEffect(() => {
     const fetchSimulationPositionsInfo = async () => {
+      if (!telegramData?.id) return;
+
       try {
         const res = await fetch(
-          `/api/telegram/simulation/positions?telegramId=${telegramData?.id}`
+          `/api/telegram/simulation/positions?telegramId=${telegramData.id}`
         );
-
-        // Log the raw response text
         const rawResponse = await res.text();
-        console.log("Raw response:", rawResponse);
-
         const data = JSON.parse(rawResponse);
-        console.log("Parsed data:", data);
 
         if (data.positions && data.positions.length > 0) {
           setPositions(data.positions);
-          console.log(data.positions);
-        } else {
-          console.warn("No positions found in response");
         }
       } catch (error) {
-        console.error("Error fetching positions:", error);
+        console.error("Error fetching simulation positions:", error);
       }
     };
 
     fetchSimulationPositionsInfo();
   }, [telegramData?.id]);
+
   useEffect(() => {
     const fetchPositionsInfo = async () => {
+      if (!telegramData?.id) return;
+
       try {
         const res = await fetch(
-          `/api/telegram/positions?telegramId=${telegramData?.id}`
+          `/api/telegram/positions?telegramId=${telegramData.id}`
         );
-
-        // Log the raw response text
         const rawResponse = await res.text();
-        console.log("Raw response:", rawResponse);
-
         const data = JSON.parse(rawResponse);
-        console.log("Parsed data:", data);
         setRealPositions(data);
       } catch (error) {
-        console.error("Error fetching positions:", error);
+        console.error("Error fetching real positions:", error);
       }
     };
 
     fetchPositionsInfo();
   }, [telegramData?.id]);
+
   const handleSetSimulation = useCallback(
     () => setSimulation((prev) => !prev),
     []
@@ -188,6 +180,7 @@ const UserDataProvider = ({ children }: { children: ReactNode }) => {
     realPositions,
     telegramData,
   };
+
   return (
     <userDataDetails.Provider value={value}>
       {children}
@@ -197,11 +190,9 @@ const UserDataProvider = ({ children }: { children: ReactNode }) => {
 
 const useUserData = () => {
   const context = useContext(userDataDetails);
-
   if (!context) {
-    throw new Error("useUserWallet must be used within a UserWalletProvider");
+    throw new Error("useUserData must be used within a UserDataProvider");
   }
-
   return context;
 };
 
