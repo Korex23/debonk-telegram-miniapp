@@ -32,7 +32,7 @@ const MainDashboardCard: React.FC = () => {
 
   useEffect(() => {
     setUnrealizedPNL(position.pnlPercentage);
-  }, [position.pnlPercentage]);
+  }, []);
 
   const toggleSimulation = () => {
     const newMode = !isSimulation;
