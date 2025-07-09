@@ -68,7 +68,7 @@ export const getUserSolBalance = async (
 ): Promise<number> => {
   const userAddress = getAddressFromTelegramId(telegramId);
   const userBalance = await UserSolSmartWalletClass.getSolBalance(userAddress);
-  return userBalance ?? 0 / LAMPORTS_PER_SOL;
+  return (userBalance ?? 0) / LAMPORTS_PER_SOL;
 };
 
 export const getUserTokenBalance = async (
