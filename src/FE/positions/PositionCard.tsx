@@ -1,6 +1,7 @@
 "use client";
 
 import { useUserData } from "../context/user-provider";
+import BuyPositions from "./BuyPositions";
 import PositionCard from "./Position";
 import React from "react";
 
@@ -9,11 +10,11 @@ const PositionsCard: React.FC = () => {
   const displayPositions = isSimulation ? positions : realPositions;
 
   return (
-    <main className="pt-0 p-3 bg-[#080808] min-h-screen w-full max-w-[400px] mx-auto">
+    <main className="pt-0 p-3 bg-[#080808] min-h-screen w-full max-w-full">
       <h2 className="text-2xl font-semibold text-center text-white mb-4">
         Positions
       </h2>
-      <div className="space-y-3 overflow-y-auto min-[400px]:w-[390px] w-[95%] max-h-[calc(100vh-150px)]">
+      <div className="space-y-3 overflow-y-auto w-[95%] max-w-full mx-auto max-h-[calc(100vh-150px)]">
         <div className="space-y-4">
           {displayPositions.length > 0 ? (
             <div className="grid grid-cols-1 gap-4">
@@ -34,6 +35,7 @@ const PositionsCard: React.FC = () => {
           )}
         </div>
       </div>
+      <BuyPositions />
     </main>
   );
 };

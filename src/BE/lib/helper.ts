@@ -119,16 +119,17 @@ export const getTokenDetails = async (token: string): Promise<TokenDetails> => {
 };
 
 function formatPriceInSol(priceInSol: number): string {
+  if (priceInSol === 0) return "0";
+
+  // Convert to string with high precision
   const priceStr = priceInSol.toFixed(10);
   const [integerPart, decimalPart] = priceStr.split(".");
 
-  const leadingZerosMatch = decimalPart.match(/^0+/);
-  const leadingZeros = leadingZerosMatch ? leadingZerosMatch[0] : "";
-  const significantDigits = decimalPart.slice(leadingZeros.length);
+  // Remove trailing zeros
+  const trimmedDecimal = decimalPart.replace(/0+$/, "");
 
-  return `${integerPart}.___(${
-    leadingZeros.length
-  })___ ${significantDigits.substring(0, 2)}`;
+  // Return combined
+  return `${integerPart}.${trimmedDecimal}`;
 }
 
 export const getTokenDataForMiniApp = async (
@@ -156,6 +157,8 @@ export const getTokenDataForMiniApp = async (
     );
     const wallet = user.wallet.find((w: Wallet) => w.isPrimary);
 
+    const tokenPriceInSol = Number(token.priceUsd) / solUsdPrice;
+
     const userTokenBalance = isSim
       ? Number(position?.amountHeld || 0)
       : await userClass.getTokenBalance(_token);
@@ -172,7 +175,7 @@ export const getTokenDataForMiniApp = async (
         symbol: token.symbol,
         address: token.address,
         priceUsd: Number(token.priceUsd),
-        priceSol: formatPriceInSol(Number(token.priceUsd)),
+        priceSol: formatPriceInSol(tokenPriceInSol),
         volume: token.volume,
         change: token.change,
         liquidityUsd: token.liquidityInUsd,
