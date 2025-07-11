@@ -11,7 +11,7 @@ const PositionsCard: React.FC = () => {
   const displayPositions = isSimulation ? positions : realPositions;
 
   return (
-    <main className="pt-0 p-3 bg-[#080808] min-h-screen w-full max-w-full">
+    <main className="bg-[#080808] min-h-screen">
       <h2 className="text-2xl font-semibold text-center text-white mb-4">
         Positions
       </h2>
