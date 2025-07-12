@@ -306,10 +306,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
             </h2>
 
             <div className="w-40 h-40 mx-auto">
-              <Lottie
-                animationData={require("@/assets/success.json")}
-                loop={false}
-              />
+              <Lottie animationData={success} loop={false} />
             </div>
 
             <p className="text-sm mt-4 text-white/80">
