@@ -3,7 +3,7 @@
 import { UserPositionSummary, useUserData } from "@/FE/context/user-provider";
 import success from "@/assets/success.json";
 import Lottie from "lottie-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
 interface PositionCardProps {
