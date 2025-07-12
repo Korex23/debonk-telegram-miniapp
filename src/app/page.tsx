@@ -4,8 +4,6 @@ import Loader from "@/FE/common/Loader";
 import { useUserData } from "@/FE/context/user-provider";
 import MainDashboardCard from "@/FE/dashboard/MainDashboardCard";
 import PositionCard from "@/FE/positions/Position";
-import { generateRandomPosition } from "@/utils/RandomPositions";
-import { useEffect, useState } from "react";
 
 const DashboardPage: React.FC = () => {
   const { positions, pageLoading, isSimulation, realPositions } = useUserData();

@@ -1,5 +1,12 @@
-import PositionsCard from "@/FE/positions/PositionCard";
+// app/positions/page.tsx
+"use client";
+
+import dynamic from "next/dynamic";
 import React from "react";
+
+const PositionsCard = dynamic(() => import("@/FE/positions/PositionCard"), {
+  ssr: false,
+});
 
 const PositionsPage: React.FC = () => {
   return (

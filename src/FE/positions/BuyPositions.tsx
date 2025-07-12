@@ -1,3 +1,5 @@
+"use client";
+
 import { useUserData } from "../context/user-provider";
 import success from "@/assets/success.json";
 import Lottie from "lottie-react";
