@@ -24,6 +24,15 @@ export default {
         darkBlue: "#2563EB",
         lightBlueBg: "#1FB6ED",
         offWhite: "#F6F6F6",
+        gold: {
+          100: "#fef9e7",
+          300: "#f7dc6f",
+          400: "#f1c40f",
+          500: "#d4ac0d",
+          600: "#b7950b",
+          700: "#9a7d0a",
+          800: "#7d6608",
+        },
       },
       fontFamily: {
         poppins: ["var(--font-poppins)"],

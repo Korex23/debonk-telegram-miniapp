@@ -1,4 +1,5 @@
 import { SwapData } from "../bridge/types";
+import { UserSolSmartWalletClass } from "./providers/server";
 import { PrismaClient, Swap } from "@prisma/client";
 import { Transaction } from "@prisma/client";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
@@ -200,6 +201,10 @@ export const updatePositionOnSell = async (
   amountSold: string,
   sellPrice: string
 ) => {
+  const { solUsdPrice } = await UserSolSmartWalletClass.getSolPrice();
+  const amountSoldInToken =
+    (parseFloat(amountSold) * solUsdPrice) / parseFloat(sellPrice);
+
   return prisma.$transaction(async (tx) => {
     const position = await tx.position.findFirst({
       where: {
@@ -214,7 +219,7 @@ export const updatePositionOnSell = async (
     }
 
     const newAmountHeld = (
-      parseFloat(position.amountHeld) - parseFloat(amountSold)
+      parseFloat(position.amountHeld) - amountSoldInToken
     ).toString();
 
     const profitLoss = (

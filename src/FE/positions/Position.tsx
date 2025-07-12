@@ -150,53 +150,125 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-[#181818] rounded-lg p-6 w-[90%] max-w-md text-white shadow-xl space-y-4">
-            <h3 className="text-lg font-semibold">Sell Token</h3>
-            <p className="text-sm text-gray-400">
-              Enter amount in SOL to sell for{" "}
-              <strong>{position.tokenTicker}</strong>
-            </p>
-            <input
-              type="number"
-              className="w-full px-3 py-2 text-sm bg-[#1f1f1f] border border-gray-600 rounded-md focus:outline-none"
-              placeholder="Amount in SOL"
-              value={amount}
-              onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-              min={0}
-              step="0.001"
-            />
-
-            <div className="text-sm space-y-1">
-              <p className="text-gray-400">
-                ≈{" "}
-                <span className="text-white font-semibold">
-                  ${amountInUsd.toFixed(2)}
-                </span>{" "}
-                USD
-              </p>
-              <p className="text-gray-400">
-                You currently hold ≈{" "}
-                <span className="text-white font-semibold">
-                  ${tokenUsdValue.toFixed(2)}
-                </span>{" "}
-                of {position.tokenTicker}
-              </p>
-            </div>
-
-            <div className="flex justify-end space-x-3 pt-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#1a1a1a] border border-gray-700 rounded-xl p-6 w-[95%] max-w-md text-white shadow-2xl animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">
+                Sell {position.tokenTicker}
+              </h3>
               <button
                 onClick={() => setModalOpen(false)}
-                className="text-sm px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-1">
+                <label
+                  htmlFor="sell-amount"
+                  className="text-sm font-medium text-gray-300"
+                >
+                  Amount to sell (SOL)
+                </label>
+                <span className="text-xs text-gray-400">
+                  Balance: {userData?.balance.toFixed(4)} SOL
+                </span>
+              </div>
+              <div className="relative">
+                <input
+                  id="sell-amount"
+                  type="number"
+                  className="w-full px-4 py-3 text-base bg-[#1f1f1f] border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+                  min={0}
+                  step="0.001"
+                />
+                <button
+                  onClick={() => setAmount(userData?.balance || 0)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded-md transition-colors"
+                >
+                  MAX
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-[#1f1f1f] rounded-lg p-4 mb-6">
+              <div className="flex justify-between mb-2">
+                <span className="text-sm text-gray-400">Price</span>
+                <span className="text-sm font-medium">
+                  ${amountInUsd.toFixed(2)} USD
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-400">
+                  Your {position.tokenTicker} holdings
+                </span>
+                <span className="text-sm font-medium">
+                  ${tokenUsdValue.toFixed(2)} USD
+                </span>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setModalOpen(false)}
+                className="flex-1 px-4 py-3 text-sm font-medium bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSellRealPositions}
-                disabled={loading || amount <= 0}
-                className="text-sm px-4 py-2 bg-red-600 rounded-md hover:bg-red-500 disabled:opacity-50"
+                disabled={
+                  loading || amount <= 0 || amount > (userData?.balance || 0)
+                }
+                className={`flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  loading || amount <= 0 || amount > (userData?.balance || 0)
+                    ? "bg-red-900/50 cursor-not-allowed"
+                    : "bg-red-600 hover:bg-red-500"
+                }`}
               >
-                {loading ? "Selling..." : "Confirm Sell"}
+                {loading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <svg
+                      className="animate-spin h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span>Selling...</span>
+                  </div>
+                ) : (
+                  "Confirm Sell"
+                )}
               </button>
             </div>
           </div>

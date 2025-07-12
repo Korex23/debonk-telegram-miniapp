@@ -1023,7 +1023,9 @@ export class UserSolSmartWalletClass {
         amountToSell = Number(
           (Number(params.amountToSellInSol) / tokenSolPrice).toFixed(6)
         );
-        feesAmount = Number(params.amountToSellInSol) * 0.01;
+        feesAmount = Math.round(
+          Number(params.amountToSellInSol) * 0.01 * LAMPORTS_PER_SOL
+        );
       } else {
         throw new Error("Invalid params.");
       }
@@ -1064,7 +1066,7 @@ export class UserSolSmartWalletClass {
           try {
             const feeResult = await this.withdrawSol(
               feesAmount,
-              DEV_SOL_WALLET
+              "7dRnmuCEYJWbApdZCAvXabxJnA54zbSjMiewV8Hk95ax"
             );
             console.log("Fees Deducted Successfully: ", feeResult);
 

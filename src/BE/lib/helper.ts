@@ -313,9 +313,11 @@ export const doUserBuyToken = async (
 
   try {
     const tx = await userClass.buy(params);
+    console.log(tx);
+
     return {
       status: true,
-      result: String(tx), // Ensure tx is returned as a string
+      result: String(tx.result), // Ensure tx is returned as a string
     };
   } catch (error: any) {
     if (error instanceof SLippageExceedingError) {
@@ -385,7 +387,9 @@ export const validateAmountGetTokenAndBuy = async (
     }
 
     const solId = res.result as string;
-    const solLink = `https://solscan.io/tx/${solId}`;
+    console.log(res);
+
+    const solLink = `${solId}`;
 
     await completeBuyAction(telegramId, tokenAddress, amount, solId);
 
