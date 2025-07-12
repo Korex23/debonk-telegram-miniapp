@@ -1,5 +1,10 @@
+"use client";
+
 import { UserPositionSummary, useUserData } from "@/FE/context/user-provider";
-import React, { useState } from "react";
+import success from "@/assets/success.json";
+import Lottie from "lottie-react";
+import { useRouter } from "next/router";
+import React, { useState, useEffect } from "react";
 
 interface PositionCardProps {
   position: UserPositionSummary;
@@ -16,12 +21,27 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const { telegramData, isSimulation, userData } = useUserData();
   const solPrice = userData?.solUsdPrice || 0;
+  const router = useRouter();
 
-  const [amount, setAmount] = useState<number>(0); // amount in SOL
+  const [amount, setAmount] = useState<number>(0); // amount in token units
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [successful, setSuccessful] = useState<boolean>(false);
+  const [txHash, setTxHash] = useState("");
+  const [countdown, setCountdown] = useState(5);
 
   const tokenUsdValue = position.amountHeld * position.currentPriceUsd;
-  const amountInUsd = amount * solPrice;
+  const amountInSol = amount * (position.currentPriceUsd / solPrice);
+  const amountInUsd = amount * position.currentPriceUsd;
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (successful && countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    } else if (successful && countdown === 0) {
+      router.push("/");
+    }
+    return () => clearTimeout(timer);
+  }, [successful, countdown]);
 
   const handleSellRealPositions = async () => {
     try {
@@ -35,15 +55,20 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
           telegramId: telegramData?.id,
           tokenAddress: position.tokenAddress,
           amountOrType: "AMOUNT",
-          amount,
+          amount: amountInSol,
         }),
       });
 
-      const rawResponse = await res.text();
-      console.log("Raw response:", rawResponse);
-      setModalOpen(false);
+      const result = await res.json();
+      console.log("Sell result:", result);
+
+      if (result.status && result.txHash) {
+        setTxHash(result.txHash);
+        setSuccessful(true);
+        setModalOpen(false);
+      }
     } catch (error) {
-      console.error("Error fetching positions:", error);
+      console.error("Error selling position:", error);
     } finally {
       setLoading(false);
     }
@@ -67,7 +92,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
       const rawResponse = await res.text();
       console.log("Raw response:", rawResponse);
     } catch (error) {
-      console.error("Error fetching positions:", error);
+      console.error("Error selling simulated position:", error);
     } finally {
       setLoading(false);
     }
@@ -137,7 +162,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
             className="bg-[#E82E2E] hover:bg-[#ff4d4d] text-white text-xs font-semibold py-2 rounded-lg w-full transition duration-200 ease-in-out shadow-sm"
             onClick={handleSellPositions}
           >
-            {loading ? "Selling" : "Sell 100%"}
+            {loading ? "Selling..." : "Sell 100%"}
           </button>
         ) : (
           <button
@@ -181,10 +206,11 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
                   htmlFor="sell-amount"
                   className="text-sm font-medium text-gray-300"
                 >
-                  Amount to sell (SOL)
+                  Amount to sell ({position.tokenSymbol})
                 </label>
                 <span className="text-xs text-gray-400">
-                  Balance: {userData?.balance.toFixed(4)} SOL
+                  Balance: {position.amountHeld.toFixed(4)}{" "}
+                  {position.tokenSymbol}
                 </span>
               </div>
               <div className="relative">
@@ -199,7 +225,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
                   step="0.001"
                 />
                 <button
-                  onClick={() => setAmount(userData?.balance || 0)}
+                  onClick={() => setAmount(position.amountHeld)}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded-md transition-colors"
                 >
                   MAX
@@ -209,17 +235,15 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
 
             <div className="bg-[#1f1f1f] rounded-lg p-4 mb-6">
               <div className="flex justify-between mb-2">
-                <span className="text-sm text-gray-400">Price</span>
+                <span className="text-sm text-gray-400">Estimated in SOL</span>
                 <span className="text-sm font-medium">
-                  ${amountInUsd.toFixed(2)} USD
+                  ≈ {amountInSol.toFixed(6)} SOL
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-400">
-                  Your {position.tokenTicker} holdings
-                </span>
+                <span className="text-sm text-gray-400">Value (USD)</span>
                 <span className="text-sm font-medium">
-                  ${tokenUsdValue.toFixed(2)} USD
+                  ${amountInUsd.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -234,10 +258,10 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
               <button
                 onClick={handleSellRealPositions}
                 disabled={
-                  loading || amount <= 0 || amount > (userData?.balance || 0)
+                  loading || amount <= 0 || amount > position.amountHeld
                 }
                 className={`flex-1 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  loading || amount <= 0 || amount > (userData?.balance || 0)
+                  loading || amount <= 0 || amount > position.amountHeld
                     ? "bg-red-900/50 cursor-not-allowed"
                     : "bg-red-600 hover:bg-red-500"
                 }`}
@@ -257,12 +281,12 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
                         r="10"
                         stroke="currentColor"
                         strokeWidth="4"
-                      ></circle>
+                      />
                       <path
                         className="opacity-75"
                         fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
+                      />
                     </svg>
                     <span>Selling...</span>
                   </div>
@@ -271,6 +295,40 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {successful && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#141414] border border-green-600 rounded-lg p-6 w-full max-w-md text-center shadow-lg text-white">
+            <h2 className="text-xl font-bold text-green-400 mb-3">
+              Transaction Successful
+            </h2>
+
+            <div className="w-40 h-40 mx-auto">
+              <Lottie
+                animationData={require("@/assets/success.json")}
+                loop={false}
+              />
+            </div>
+
+            <p className="text-sm mt-4 text-white/80">
+              Your transaction was successful!
+            </p>
+
+            <a
+              href={txHash}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#E6B911] underline mt-2 block break-all hover:text-[#f5d13b] transition-colors"
+            >
+              View on Solscan ↗
+            </a>
+
+            <p className="text-xs text-gray-400 mt-4">
+              Redirecting to homepage in {countdown} second
+              {countdown !== 1 ? "s" : ""}...
+            </p>
           </div>
         </div>
       )}
