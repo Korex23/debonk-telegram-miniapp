@@ -119,7 +119,7 @@ const BuyPositions = () => {
 
       {showSlideUp && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-end justify-center z-40 md:items-center md:p-4 mb-14">
-          <div className="w-full max-w-md bg-[#181818] border text-yellow-400 rounded-t-xl md:rounded-xl p-6 z-50 shadow-lg space-y-4 animate-slide-up">
+          <div className="w-full max-w-md bg-[#181818] border border-yellow-400 rounded-t-xl md:rounded-xl p-6 z-50 shadow-lg space-y-4 animate-slide-up">
             {fetchingTokenData || loading ? (
               <div className="flex flex-col items-center justify-center space-y-4 py-10">
                 <svg

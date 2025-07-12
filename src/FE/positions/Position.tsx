@@ -26,6 +26,8 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   const [amount, setAmount] = useState<number>(0); // amount in token units
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [successful, setSuccessful] = useState<boolean>(false);
+  // const [failed, setFailed] = useState(false);
+  // const [err, setErr] = useState("");
   const [txHash, setTxHash] = useState("");
   const [countdown, setCountdown] = useState(5);
 
