@@ -32,6 +32,10 @@ const BuyPositions = () => {
   }, [successful, countdown]);
 
   const fetchTokenData = async () => {
+    if (!telegramId) {
+      alert("Telegram ID is missing. Please try again.");
+      return;
+    }
     try {
       setShowSlideUp(true);
       setFethcingTokenData(true);
