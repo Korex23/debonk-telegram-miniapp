@@ -148,9 +148,11 @@ const UserDataProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const fetchPositionsInfo = async () => {
+      if (!telegramData?.id) return;
+
       try {
         const res = await fetch(
-          `/api/telegram/positions?telegramId=7023048964`
+          `/api/telegram/positions?telegramId=${telegramData.id}`
         );
         const rawResponse = await res.text();
         const data = JSON.parse(rawResponse);

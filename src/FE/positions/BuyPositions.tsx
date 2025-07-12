@@ -55,6 +55,18 @@ const BuyPositions = () => {
     }
   };
 
+  useEffect(() => {
+    if (!tokenAddress || tokenAddress.length < 32) return;
+
+    const timer = setTimeout(() => {
+      if (tokenAddress.length >= 32) {
+        fetchTokenData();
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [tokenAddress]);
+
   const handleBuy = async () => {
     if (!amountToken || !tokenInfo?.priceSol) return;
 
@@ -102,9 +114,6 @@ const BuyPositions = () => {
           onChange={(e) => setTokenAddress(e.target.value)}
           placeholder="Enter or paste token address"
           className="w-full px-4 py-3 text-sm bg-[#1f1f1f] border border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E6B911] transition-all"
-          onBlur={() => {
-            if (tokenAddress.length >= 32) fetchTokenData();
-          }}
         />
       </div>
 
