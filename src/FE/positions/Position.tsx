@@ -64,7 +64,9 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
       const result = await res.json();
       console.log("Sell result:", result);
 
-      if (result.status && result.txHash) {
+      alert(result);
+
+      if (result.status === true && result.txHash) {
         setTxHash(result.txHash);
         setSuccessful(true);
         setModalOpen(false);
