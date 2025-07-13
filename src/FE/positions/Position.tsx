@@ -26,8 +26,8 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   const [amount, setAmount] = useState<number>(0); // amount in token units
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [successful, setSuccessful] = useState<boolean>(false);
-  // const [failed, setFailed] = useState(false);
-  // const [err, setErr] = useState("");
+  const [failed, setFailed] = useState(false);
+  const [err, setErr] = useState("");
   const [txHash, setTxHash] = useState("");
   const [countdown, setCountdown] = useState(5);
 
@@ -68,9 +68,14 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
         setTxHash(result.txHash);
         setSuccessful(true);
         setModalOpen(false);
+      } else {
+        setFailed(true);
+        setErr(result.message || "Transaction failed. Please try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error selling position:", error);
+      setFailed(true);
+      setErr(error.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -300,6 +305,27 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
           </div>
         </div>
       )}
+      {failed && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#1a1a1a] border border-red-600 rounded-lg p-6 w-full max-w-md text-center shadow-lg text-white">
+            <h2 className="text-xl font-bold text-red-500 mb-3">
+              Transaction Failed
+            </h2>
+
+            <p className="text-sm mt-2 text-white/80">{err}</p>
+
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={() => setFailed(false)}
+                className="px-4 py-2 text-sm font-medium bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {successful && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div className="bg-[#141414] border border-green-600 rounded-lg p-6 w-full max-w-md text-center shadow-lg text-white">
