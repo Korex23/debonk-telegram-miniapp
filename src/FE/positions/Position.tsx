@@ -67,10 +67,12 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
       alert(result);
 
       if (result.status === true && result.txHash) {
+        alert("passed");
         setTxHash(result.txHash);
         setSuccessful(true);
         setModalOpen(false);
-      } else {
+      } else if (result.status === false) {
+        alert("Failed");
         setFailed(true);
         setErr(result.message || "Transaction failed. Please try again.");
       }
