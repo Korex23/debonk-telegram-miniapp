@@ -47,25 +47,34 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   const isNavigating = useRef(false);
 
   useEffect(() => {
-    if (pathname === "/") {
-      setModalOpen(false);
-      setSuccessful(false);
-    }
-  }, [pathname]);
-
-  useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (successful && countdown > 0 && !isNavigating.current) {
-      timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    } else if (successful && countdown === 0 && !isNavigating.current) {
+    let autoCloseTimer: NodeJS.Timeout;
+
+    if (successful) {
+      if (pathname === "/") {
+        autoCloseTimer = setTimeout(() => {
+          setSuccessful(false);
+        }, 5000);
+      } else {
+        timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+      }
+    }
+
+    if (
+      successful &&
+      countdown === 0 &&
+      pathname !== "/" &&
+      !isNavigating.current
+    ) {
       isNavigating.current = true;
       router.push("/");
     }
 
     return () => {
       if (timer) clearTimeout(timer);
+      if (autoCloseTimer) clearTimeout(autoCloseTimer);
     };
-  }, [successful, countdown]);
+  }, [successful, countdown, pathname]);
 
   const handleSellRealPositions = async () => {
     try {
