@@ -37,12 +37,18 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   const amountInUsd = amount * position.currentPriceUsd;
 
   useEffect(() => {
+    alert(
+      `🎯 useEffect check: successful=${successful}, countdown=${countdown}`
+    );
+
     let timer: NodeJS.Timeout;
     if (successful && countdown > 0) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
     } else if (successful && countdown === 0) {
+      alert("➡️ Routing to /");
       router.push("/");
     }
+
     return () => clearTimeout(timer);
   }, [successful, countdown]);
 
