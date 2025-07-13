@@ -89,6 +89,9 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
         setSuccessful(true);
         setModalOpen(false);
         await fetchPositionsInfo(`${telegramId}`);
+        setTimeout(() => {
+          router.push("/");
+        }, 5000);
       } else {
         // alert("Transaction failed");
         setFailed(true);
