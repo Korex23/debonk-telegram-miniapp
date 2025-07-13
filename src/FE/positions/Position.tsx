@@ -75,21 +75,21 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
 
       const result = await res.json();
       console.log("Sell result:", result);
-      alert(JSON.stringify(result, null, 2));
+      // alert(JSON.stringify(result, null, 2));
 
       if (result.status === true && result.txHash) {
-        alert("Transaction passed");
+        // alert("Transaction passed");
         setTxHash(result.txHash);
         setSuccessful(true);
         setModalOpen(false);
       } else {
-        alert("Transaction failed");
+        // alert("Transaction failed");
         setFailed(true);
         setErr(result.message || "Transaction failed. Please try again.");
       }
     } catch (error: any) {
       console.error("Error selling position:", error);
-      alert("Catch block: " + error.message);
+      // alert("Catch block: " + error.message);
       setFailed(true);
       setErr(error.message || "An unexpected error occurred.");
     } finally {
