@@ -83,6 +83,7 @@ const BuyPositions = () => {
 
   const handleBuy = async () => {
     if (!amountToken || !tokenInfo?.priceSol) return;
+    if (!telegramId) return;
 
     const amountInSol = amountToken * Number(tokenInfo.priceSol);
 
@@ -252,7 +253,7 @@ const BuyPositions = () => {
                     </button>
                     <button
                       onClick={handleBuy}
-                      disabled={loading || amountToken <= 0}
+                      disabled={loading || amountToken <= 0 || !telegramId}
                       className="px-4 py-2 bg-green-600 rounded hover:bg-green-500 text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-24"
                     >
                       {loading ? (
