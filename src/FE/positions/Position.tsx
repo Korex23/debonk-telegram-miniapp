@@ -54,7 +54,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          telegramId: telegramData?.id,
+          telegramId: `${telegramData?.id}`,
           tokenAddress: position.tokenAddress,
           amountOrType: "AMOUNT",
           amount: amountInSol,
@@ -85,7 +85,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          telegramId: telegramData?.id,
+          telegramId: `${telegramData?.id}`,
           tokenAddress: position.tokenAddress,
           percentToSell: 100,
         }),

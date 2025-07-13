@@ -93,7 +93,7 @@ const BuyPositions = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          telegramId,
+          telegramId: `${telegramId}`,
           tokenAddress,
           amount: amountInSol,
         }),
