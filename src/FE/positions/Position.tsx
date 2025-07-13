@@ -4,6 +4,7 @@ import { UserPositionSummary, useUserData } from "@/FE/context/user-provider";
 import success from "@/assets/success.json";
 import Lottie from "lottie-react";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 
 interface PositionCardProps {
@@ -28,6 +29,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   } = useUserData();
   const solPrice = userData?.solUsdPrice || 0;
   const router = useRouter();
+  const pathname = usePathname();
 
   const [amount, setAmount] = useState<number>(0); // amount in token units
   const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -43,6 +45,13 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   const amountInUsd = amount * position.currentPriceUsd;
 
   const isNavigating = useRef(false);
+
+  useEffect(() => {
+    if (pathname === "/") {
+      setModalOpen(false);
+      setSuccessful(false);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
