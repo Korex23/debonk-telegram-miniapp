@@ -18,7 +18,7 @@ const BuyPositions = () => {
   const [successful, setSuccess] = useState<boolean>(false);
   const [txHash, setTxHash] = useState("");
   const [countdown, setCountdown] = useState(5);
-  const { telegramData } = useUserData();
+  const { telegramData, fetchPositionsInfo } = useUserData();
   const telegramId = telegramData?.id;
   const router = useRouter();
 
@@ -57,6 +57,7 @@ const BuyPositions = () => {
         setTokenInfo(data.token);
         setUserInfo(data.user);
         setShowSlideUp(true);
+        await fetchPositionsInfo(`${telegramId}`);
       } else {
         setTokenInfo(null);
         setShowSlideUp(false);

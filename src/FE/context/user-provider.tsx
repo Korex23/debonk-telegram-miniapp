@@ -63,6 +63,8 @@ type ContentType = {
   referralInfo: actualReferral | undefined;
   realPositions: UserPositionSummary[];
   telegramData: UserData | null;
+  fetchSimulationPositionsInfo: (telegramId: string) => Promise<void>;
+  fetchPositionsInfo: (telegramId: string) => Promise<void>;
 };
 
 const userDataDetails = createContext<ContentType | null>(null);
@@ -124,45 +126,48 @@ const UserDataProvider = ({ children }: { children: ReactNode }) => {
     fetchUserInfo();
   }, [telegramData?.id, successfull]);
 
-  useEffect(() => {
-    const fetchSimulationPositionsInfo = async () => {
-      if (!telegramData?.id) return;
+  const fetchSimulationPositionsInfo = async (telegramId: string) => {
+    const telegramUId = telegramData?.id || telegramId;
+    if (!telegramUId) return;
 
-      try {
-        const res = await fetch(
-          `/api/telegram/simulation/positions?telegramId=${telegramData.id}`
-        );
-        const rawResponse = await res.text();
-        const data = JSON.parse(rawResponse);
+    try {
+      const res = await fetch(
+        `/api/telegram/simulation/positions?telegramId=${telegramUId}`
+      );
+      const rawResponse = await res.text();
+      const data = JSON.parse(rawResponse);
 
-        if (data.positions && data.positions.length > 0) {
-          setPositions(data.positions);
-        }
-      } catch (error) {
-        console.error("Error fetching simulation positions:", error);
+      if (data.positions && data.positions.length > 0) {
+        setPositions(data.positions);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching simulation positions:", error);
+    }
+  };
 
-    fetchSimulationPositionsInfo();
+  const fetchPositionsInfo = async (telegramId: string) => {
+    const telegramUId = telegramData?.id || telegramId;
+    if (!telegramUId) return;
+
+    try {
+      const res = await fetch(
+        `/api/telegram/positions?telegramId=${telegramUId}`
+      );
+      const rawResponse = await res.text();
+      const data = JSON.parse(rawResponse);
+      setRealPositions(data);
+    } catch (error) {
+      console.error("Error fetching real positions:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (telegramData?.id) fetchPositionsInfo(telegramData.id.toString());
   }, [telegramData?.id]);
 
   useEffect(() => {
-    const fetchPositionsInfo = async () => {
-      if (!telegramData?.id) return;
-
-      try {
-        const res = await fetch(
-          `/api/telegram/positions?telegramId=${telegramData.id}`
-        );
-        const rawResponse = await res.text();
-        const data = JSON.parse(rawResponse);
-        setRealPositions(data);
-      } catch (error) {
-        console.error("Error fetching real positions:", error);
-      }
-    };
-
-    fetchPositionsInfo();
+    if (telegramData?.id)
+      fetchSimulationPositionsInfo(telegramData.id.toString());
   }, [telegramData?.id]);
 
   const handleSetSimulation = useCallback(
@@ -179,6 +184,8 @@ const UserDataProvider = ({ children }: { children: ReactNode }) => {
     referralInfo,
     realPositions,
     telegramData,
+    fetchPositionsInfo,
+    fetchSimulationPositionsInfo,
   };
 
   return (

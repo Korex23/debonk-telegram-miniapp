@@ -19,7 +19,13 @@ const getPnlColor = (percent: number) => {
 const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   const pnlColor = getPnlColor(position.PNL_Sol_percent);
   const [loading, setLoading] = useState<boolean>(false);
-  const { telegramData, isSimulation, userData } = useUserData();
+  const {
+    telegramData,
+    isSimulation,
+    userData,
+    fetchPositionsInfo,
+    fetchSimulationPositionsInfo,
+  } = useUserData();
   const solPrice = userData?.solUsdPrice || 0;
   const router = useRouter();
 
@@ -82,6 +88,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
         setTxHash(result.txHash);
         setSuccessful(true);
         setModalOpen(false);
+        await fetchPositionsInfo(`${telegramId}`);
       } else {
         // alert("Transaction failed");
         setFailed(true);
@@ -114,6 +121,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
 
       const rawResponse = await res.text();
       console.log("Raw response:", rawResponse);
+      await fetchPositionsInfo(`${telegramId}`);
     } catch (error) {
       console.error("Error selling simulated position:", error);
     } finally {
