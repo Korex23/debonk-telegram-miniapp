@@ -4,7 +4,7 @@ import { UserPositionSummary, useUserData } from "@/FE/context/user-provider";
 import success from "@/assets/success.json";
 import Lottie from "lottie-react";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 interface PositionCardProps {
   position: UserPositionSummary;
@@ -24,7 +24,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
     isSimulation,
     userData,
     fetchPositionsInfo,
-    fetchSimulationPositionsInfo,
+    // fetchSimulationPositionsInfo,
   } = useUserData();
   const solPrice = userData?.solUsdPrice || 0;
   const router = useRouter();
@@ -42,16 +42,20 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   const amountInSol = amount * (position.currentPriceUsd / solPrice);
   const amountInUsd = amount * position.currentPriceUsd;
 
+  const isNavigating = useRef(false);
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (successful && countdown > 1) {
+    if (successful && countdown > 0 && !isNavigating.current) {
       timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    } else if (successful && countdown <= 1) {
-      alert("➡️ Routing to /");
+    } else if (successful && countdown === 0 && !isNavigating.current) {
+      isNavigating.current = true;
       router.push("/");
     }
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [successful, countdown]);
 
   const handleSellRealPositions = async () => {
@@ -85,9 +89,6 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
         setSuccessful(true);
         setModalOpen(false);
         await fetchPositionsInfo(`${telegramId}`);
-        setTimeout(() => {
-          router.push("/");
-        }, 5000);
       } else {
         // alert("Transaction failed");
         setFailed(true);
