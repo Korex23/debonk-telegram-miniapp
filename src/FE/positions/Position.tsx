@@ -30,6 +30,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   const [err, setErr] = useState("");
   const [txHash, setTxHash] = useState("");
   const [countdown, setCountdown] = useState(5);
+  const telegramId = telegramData?.id;
 
   const tokenUsdValue = position.amountHeld * position.currentPriceUsd;
   const amountInSol = amount * (position.currentPriceUsd / solPrice);
@@ -54,30 +55,35 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          telegramId: `${telegramData?.id}`,
+          telegramId: `${telegramId}`,
           tokenAddress: position.tokenAddress,
           amountOrType: "AMOUNT",
           amount: amountInSol,
         }),
       });
 
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Server error ${res.status}: ${text}`);
+      }
+
       const result = await res.json();
       console.log("Sell result:", result);
-
-      alert(result);
+      alert(JSON.stringify(result, null, 2));
 
       if (result.status === true && result.txHash) {
-        alert("passed");
+        alert("Transaction passed");
         setTxHash(result.txHash);
         setSuccessful(true);
         setModalOpen(false);
-      } else if (result.status === false) {
-        alert("Failed");
+      } else {
+        alert("Transaction failed");
         setFailed(true);
         setErr(result.message || "Transaction failed. Please try again.");
       }
     } catch (error: any) {
       console.error("Error selling position:", error);
+      alert("Catch block: " + error.message);
       setFailed(true);
       setErr(error.message || "An unexpected error occurred.");
     } finally {
