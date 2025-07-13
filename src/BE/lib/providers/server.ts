@@ -1008,14 +1008,16 @@ export class UserSolSmartWalletClass {
 
         const balance = await this.getTokenBalance(params.token);
         console.log("balance: ", balance);
-        if (!balance || balance < 1) {
+        if (!balance) {
           throw new Error("Insufficient balance.");
         }
 
         amountToSell = Number(
           (balance * (params.percentToSell / 100)).toFixed(6)
         );
-        feesAmount = tokenSolPrice * amountToSell * 0.01; // 1% fee in SOL
+        feesAmount = Math.round(
+          tokenSolPrice * amountToSell * 0.01 * LAMPORTS_PER_SOL
+        );
       } else if (isSellTokenInSolParams(params)) {
         console.log("tokenSolPrice: ", tokenSolPrice);
         console.log("priceOfToken: ", tokenUsdPrice);

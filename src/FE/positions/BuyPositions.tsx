@@ -5,6 +5,7 @@ import success from "@/assets/success.json";
 import Lottie from "lottie-react";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
+import { FaLink } from "react-icons/fa";
 
 const BuyPositions = () => {
   const [tokenAddress, setTokenAddress] = useState("");
@@ -20,6 +21,15 @@ const BuyPositions = () => {
   const { telegramData } = useUserData();
   const telegramId = telegramData?.id;
   const router = useRouter();
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) setTokenAddress(text);
+    } catch (err) {
+      console.error("Failed to paste from clipboard:", err);
+    }
+  };
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -103,22 +113,25 @@ const BuyPositions = () => {
   };
 
   return (
-    <div className="relative max-w-xl mx-auto px-4 py-8 text-white">
-      <div className="mb-4">
-        <label
-          htmlFor="tokenAddress"
-          className="block text-sm font-medium text-gray-300 mb-1"
+    <div className="relative max-w-xl mx-auto py-8 text-white">
+      <div className="flex items-center justify-between w-full border border-[#E0A503]/40 rounded-lg px-4 py-3 bg-black  text-[#CC920F]/70">
+        <div className="flex items-center gap-2 flex-grow">
+          <FaLink className=" text-[#CC920F]" />
+          <input
+            id="tokenAddress"
+            type="text"
+            value={tokenAddress}
+            onChange={(e) => setTokenAddress(e.target.value)}
+            placeholder="Contract Address"
+            className="bg-transparent focus:outline-none w-full placeholder:text-[#CC920F]/50  text-[#CC920F]/80 text-sm"
+          />
+        </div>
+        <button
+          onClick={handlePaste}
+          className="ml-2 underline text-[#CC920F]/80 text-sm"
         >
-          Token Address
-        </label>
-        <input
-          id="tokenAddress"
-          type="text"
-          value={tokenAddress}
-          onChange={(e) => setTokenAddress(e.target.value)}
-          placeholder="Enter or paste token address"
-          className="w-full px-4 py-3 text-sm bg-[#1f1f1f] border border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E6B911] transition-all"
-        />
+          Paste
+        </button>
       </div>
 
       {showSlideUp && (

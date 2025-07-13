@@ -199,11 +199,19 @@ export const updatePositionOnSell = async (
   walletId: string,
   tokenAddress: string,
   amountSold: string,
-  sellPrice: string
+  sellPrice: string,
+  type?: "AMOUNT" | "PERCENT"
 ) => {
   const { solUsdPrice } = await UserSolSmartWalletClass.getSolPrice();
   const amountSoldInToken =
     (parseFloat(amountSold) * solUsdPrice) / parseFloat(sellPrice);
+
+  const finalAmountSold =
+    type === "PERCENT" ? parseFloat(amountSold) : amountSoldInToken;
+
+  console.log(amountSold, "amountSold");
+  console.log(amountSoldInToken, "amountSoldInToken");
+  console.log(finalAmountSold, "finalAmountSold");
 
   return prisma.$transaction(async (tx) => {
     const position = await tx.position.findFirst({
@@ -219,7 +227,7 @@ export const updatePositionOnSell = async (
     }
 
     const newAmountHeld = (
-      parseFloat(position.amountHeld) - amountSoldInToken
+      parseFloat(position.amountHeld) - finalAmountSold
     ).toString();
 
     const profitLoss = (

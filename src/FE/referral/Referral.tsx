@@ -37,7 +37,6 @@ const Referral = () => {
   return (
     <div className="h-[90vh] mb-20">
       <section className="max-w-[390px] h-[83vh] mx-auto w-[98%] rounded-2xl border border-[#CC920F]/50 bg-[#3C3C3C3B] backdrop-blur-2xl shadow-md p-6 text-white font-exo2 space-y-4 relative">
-        {/* Earnings Section */}
         <div>
           <div className="space-y-1">
             <p className="text-xs text-neutral-400 font-light">Earnings</p>
@@ -46,7 +45,6 @@ const Referral = () => {
             </p>
           </div>
 
-          {/* Referral Counts */}
           <div className="flex gap-4 pt-2">
             <div className="flex items-center gap-2 text-sm">
               <div>

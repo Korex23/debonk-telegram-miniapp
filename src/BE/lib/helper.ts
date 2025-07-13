@@ -430,9 +430,12 @@ export const doUserSellTokenPercent = async (
 
   try {
     const result = await userClass.sell(params);
+    console.log(result.amountToSell);
+
     return {
       status: "success",
       txHash: result?.result || null,
+      amount: result.amountToSell,
       message: "Token sold successfully",
     };
   } catch (error: any) {
@@ -520,6 +523,7 @@ export const validateAmountGetTokenAndSell = async (
 
   let txHash = "";
   let result: any;
+  let amountOut: number | undefined;
 
   if (type === "PERCENT") {
     if (!percentToSell) {
@@ -535,6 +539,7 @@ export const validateAmountGetTokenAndSell = async (
 
     result = sellResult;
     txHash = result.txHash;
+    amountOut = result.amount;
   } else if (type === "AMOUNT") {
     if (amount === undefined) {
       return { status: false, message: "Amount to sell not provided." };
@@ -583,13 +588,17 @@ export const validateAmountGetTokenAndSell = async (
     ).id;
 
   const buySol = await getBuyTransaction(user.id, walletId, tokenAddress);
+  console.log(amountOut);
 
-  // Only update transaction as successful if txHash exists
-  if (txHash) {
+  if (txHash && buySol) {
+    const amountSold = amount !== undefined ? amount : amountOut ?? 0;
+
+    console.log("amountSold:", amountSold);
+
     await prisma.transaction.update({
       where: { id: buySol.id },
       data: {
-        amountSold: (amount ?? 0).toString(),
+        amountSold: amountSold.toString(),
         status: "sold",
         sellHash: JSON.stringify({
           txHash,
@@ -604,8 +613,9 @@ export const validateAmountGetTokenAndSell = async (
       user.id,
       walletId,
       tokenAddress,
-      (amount ?? 0).toString(),
-      tokenDetails.priceUsd.toString()
+      amountSold.toString(),
+      tokenDetails.priceUsd.toString(),
+      type
     );
   }
 
