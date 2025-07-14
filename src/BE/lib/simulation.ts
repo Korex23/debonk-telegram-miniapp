@@ -9,6 +9,7 @@ import {
   getBuyTransaction,
   calculateProfitLoss,
 } from "./prisma";
+import { UserSolSmartWalletClass } from "./providers/server";
 
 export async function performSimulationBuy({
   telegramId,
@@ -28,11 +29,13 @@ export async function performSimulationBuy({
     throw new Error("Insufficient Simulation SOL balance");
   }
 
+  const { solUsdPrice } = await UserSolSmartWalletClass.getSolPrice();
   await decrementUserSimulationBalance(telegramId, amount);
 
   const user = await getUserFromTelegramId(telegramId);
   const tokenDetails = await getTokenDetails(tokenAddress);
-  const amountInToken = amount / Number(tokenDetails.priceNative);
+  const solAmount = amount * solUsdPrice;
+  const amountInToken = solAmount / Number(tokenDetails.priceUsd);
 
   const wallet = user?.wallet.find((w) => w.isPrimary);
   if (!wallet) {
