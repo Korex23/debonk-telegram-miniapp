@@ -20,7 +20,7 @@ const BuyPositions = () => {
   const [countdown, setCountdown] = useState(5);
   const { telegramData, fetchPositionsInfo, isSimulation, userData } =
     useUserData();
-  const telegramId = telegramData?.id;
+  const telegramId = "7023048964";
   const router = useRouter();
 
   const handlePaste = async () => {
@@ -242,28 +242,30 @@ const BuyPositions = () => {
                     </div>
                   </div>
 
-                  <div className="bg-[#1f1f1f] p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm">Your Balance</p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
                     {!isSimulation && (
-                      <p className="font-medium">
-                        {userInfo.tokenBalance} {tokenInfo.symbol} (≈ $
-                        {userInfo.tokenBalanceUsd.toFixed(4)})
-                      </p>
+                      <div className="bg-[#1f1f1f] p-3 rounded-lg">
+                        <p className="text-gray-400 text-sm">Your Balance</p>
+                        <p className="font-medium">
+                          {userInfo.tokenBalance} {tokenInfo.symbol} (≈ $
+                          {userInfo.tokenBalanceUsd.toFixed(4)})
+                        </p>
+                      </div>
                     )}
-                  </div>
-                  <div className="bg-[#1f1f1f] p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm">Your Balance</p>
-                    {!isSimulation ? (
-                      <p className="font-medium">
-                        {userData?.balance} Sol (≈ $
-                        {userData?.solUsdBalance.toFixed(4)})
-                      </p>
-                    ) : (
-                      <p className="font-medium">
-                        {userData?.simulationBalance} Sol (≈ $
-                        {userData?.simulationUsd.toFixed(4)})
-                      </p>
-                    )}
+                    <div className="bg-[#1f1f1f] p-3 rounded-lg">
+                      <p className="text-gray-400 text-sm">Your Balance</p>
+                      {!isSimulation ? (
+                        <p className="font-medium">
+                          {userData?.balance} Sol (≈ $
+                          {userData?.solUsdBalance.toFixed(4)})
+                        </p>
+                      ) : (
+                        <p className="font-medium">
+                          {userData?.simulationBalance} Sol (≈ $
+                          {userData?.simulationUsd.toFixed(4)})
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-2 pt-2">
@@ -301,7 +303,7 @@ const BuyPositions = () => {
                       Cancel
                     </button>
                     <button
-                      onClick={handleBuy}
+                      onClick={isSimulation ? handleSimBuy : handleBuy}
                       disabled={loading || amountToken <= 0 || !telegramId}
                       className="px-4 py-2 bg-green-600 rounded hover:bg-green-500 text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-24"
                     >
