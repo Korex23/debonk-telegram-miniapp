@@ -171,7 +171,7 @@ const UserDataProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    fetchPositionsInfo("7023048964");
+    if (telegramData?.id) fetchPositionsInfo(telegramData.id.toString());
   }, [telegramData?.id]);
 
   useEffect(() => {
