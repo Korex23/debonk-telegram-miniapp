@@ -102,18 +102,29 @@ export async function getActivePositions(telegramId: string) {
         100
       ).toFixed(2);
 
+      const tokenPriceInSol = tokenDetails.priceUsd / solPrice;
+      const amountHeldSol = tokenPriceInSol * parseFloat(position.amountHeld);
+
       return {
         tokenAddress: position.tokenAddress,
         tokenTicker: position.tokenTicker,
         amountHeld: parseFloat(position.amountHeld),
+        amountHeldSol: amountHeldSol,
         currentPriceUsd: tokenDetails.priceUsd,
-        currentPriceSol: tokenDetails.priceNative,
+        currentPriceSol: tokenPriceInSol,
         tokenMC: tokenDetails.mc,
         tokenSymbol: tokenDetails.symbol,
         tokenLiquidity: tokenDetails.liquidityInUsd,
+        volume24h: tokenDetails.volume.h24,
         PNL_usd,
         PNL_sol,
         PNL_Sol_percent: Number(PNL_Sol_percent),
+        token5MChange: tokenDetails.change.m5 || "undefined",
+        tokenh1Change: tokenDetails.change.h1 || "undefined",
+        tokenh24Change: tokenDetails.change.h24 || "undefined",
+        twitterUrl: tokenDetails.twitterUrl,
+        telegramUrl: tokenDetails.telegramUrl,
+        websiteUrl: tokenDetails.websiteUrl,
       };
     })
   );

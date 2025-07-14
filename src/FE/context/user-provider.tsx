@@ -24,6 +24,7 @@ interface startData {
 export interface UserPositionSummary {
   tokenAddress: string;
   tokenTicker: string;
+  amountHeldSol: number;
   amountHeld: number;
   currentPriceUsd: number;
   currentPriceSol: number;
@@ -33,6 +34,13 @@ export interface UserPositionSummary {
   PNL_usd: number;
   PNL_sol: number;
   PNL_Sol_percent: number;
+  token5MChange: number | string;
+  tokenh1Change: number | string;
+  tokenh24Change: number | string;
+  twitterUrl: string;
+  telegramUrl: string;
+  websiteUrl: string;
+  volume24h: number;
 }
 
 interface ProfitSummary {
@@ -147,22 +155,23 @@ const UserDataProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchPositionsInfo = async (telegramId: string) => {
     const telegramUId = telegramData?.id || telegramId;
-    if (!telegramUId) return;
+    // if (!telegramUId) return;
 
     try {
       const res = await fetch(
-        `/api/telegram/positions?telegramId=${telegramUId}`
+        `/api/telegram/positions?telegramId=${telegramId}`
       );
       const rawResponse = await res.text();
       const data = JSON.parse(rawResponse);
       setRealPositions(data);
+      console.log(data);
     } catch (error) {
       console.error("Error fetching real positions:", error);
     }
   };
 
   useEffect(() => {
-    if (telegramData?.id) fetchPositionsInfo(telegramData.id.toString());
+    fetchPositionsInfo("7023048964");
   }, [telegramData?.id]);
 
   useEffect(() => {

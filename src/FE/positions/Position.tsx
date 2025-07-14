@@ -1,5 +1,6 @@
 "use client";
 
+import PositionModal from "./FullPositionsModal";
 import { UserPositionSummary, useUserData } from "@/FE/context/user-provider";
 import success from "@/assets/success.json";
 import Lottie from "lottie-react";
@@ -38,6 +39,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
   const [err, setErr] = useState("");
   const [txHash, setTxHash] = useState("");
   const [countdown, setCountdown] = useState(5);
+  const [openPositionModal, setPositionModal] = useState<boolean>(false);
   const telegramId = telegramData?.id;
 
   const tokenUsdValue = position.amountHeld * position.currentPriceUsd;
@@ -206,21 +208,29 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
           </div>
         </div>
 
-        {isSimulation ? (
-          <button
-            className="bg-[#E82E2E] hover:bg-[#ff4d4d] text-white text-xs font-semibold py-2 rounded-lg w-full transition duration-200 ease-in-out shadow-sm"
-            onClick={handleSellPositions}
-          >
-            {loading ? "Selling..." : "Sell 100%"}
-          </button>
-        ) : (
-          <button
-            className="bg-[#E82E2E] hover:bg-[#ff4d4d] text-white text-xs font-semibold py-2 rounded-lg w-full transition duration-200 ease-in-out shadow-sm"
-            onClick={() => setModalOpen(true)}
-          >
-            Sell Position
-          </button>
-        )}
+        <div className="flex gap-3">
+          {isSimulation ? (
+            <button
+              className="bg-[#E82E2E] hover:bg-[#ff4d4d] text-white text-xs font-semibold py-2 rounded-lg w-full transition duration-200 ease-in-out shadow-sm"
+              onClick={handleSellPositions}
+            >
+              {loading ? "Selling..." : "Sell 100%"}
+            </button>
+          ) : (
+            <button
+              className="bg-[#E82E2E] hover:bg-[#ff4d4d] text-white text-xs font-semibold py-2 rounded-lg w-full transition duration-200 ease-in-out shadow-sm"
+              onClick={() => setModalOpen(true)}
+            >
+              Sell Position
+            </button>
+          )}
+        </div>
+        <button
+          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-lg w-full transition duration-200 ease-in-out shadow-sm"
+          onClick={() => setPositionModal(true)}
+        >
+          View Details
+        </button>
       </div>
 
       {modalOpen && (
@@ -345,6 +355,16 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {openPositionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <PositionModal
+            data={position}
+            onClose={() => setPositionModal(false)}
+            telegramId={String(telegramId)}
+            solBalance={userData?.balance || 0}
+          />
         </div>
       )}
       {failed && (
