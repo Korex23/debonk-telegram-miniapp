@@ -14,7 +14,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/", label: "Home", icon: IoHome },
   { href: "/positions", label: "Positions", icon: IoRepeat },
-  { href: "/swap", label: "Swap", icon: MdSwapHorizontalCircle },
+  // { href: "/swap", label: "Swap", icon: MdSwapHorizontalCircle },
   { href: "/referrals", label: "Referrals", icon: IoShareSocial },
   { href: "/settings", label: "Settings", icon: IoSettings },
 ];
