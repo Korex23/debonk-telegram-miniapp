@@ -81,7 +81,13 @@ const UserDataProvider = ({ children }: { children: ReactNode }) => {
   const { successfull } = useWithdrawStore();
   const [userData, setUserData] = useState<startData>();
   const [telegramData, setTelegramData] = useState<UserData | null>(null);
-  const [isSimulation, setSimulation] = useState<boolean>(false);
+  const [isSimulation, setSimulation] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("isSimulation");
+      return stored ? stored === "true" : false;
+    }
+    return false;
+  });
   const [positions, setPositions] = useState<UserPositionSummary[]>([]);
   const [realPositions, setRealPositions] = useState<UserPositionSummary[]>([]);
   const [referralInfo, setReferralInfo] = useState<actualReferral>();
@@ -179,10 +185,15 @@ const UserDataProvider = ({ children }: { children: ReactNode }) => {
       fetchSimulationPositionsInfo(telegramData.id.toString());
   }, [telegramData?.id]);
 
-  const handleSetSimulation = useCallback(
-    () => setSimulation((prev) => !prev),
-    []
-  );
+  const handleSetSimulation = useCallback(() => {
+    setSimulation((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("isSimulation", next.toString());
+      }
+      return next;
+    });
+  }, []);
 
   const value = {
     userData,
