@@ -18,9 +18,8 @@ const BuyPositions = () => {
   const [successful, setSuccess] = useState<boolean>(false);
   const [txHash, setTxHash] = useState("");
   const [countdown, setCountdown] = useState(5);
-  const { telegramData, fetchPositionsInfo, isSimulation, userData } =
-    useUserData();
-  const telegramId = "7023048964";
+  const { telegramData, fetchPositionsInfo } = useUserData();
+  const telegramId = telegramData?.id;
   const router = useRouter();
 
   const handlePaste = async () => {
@@ -115,37 +114,6 @@ const BuyPositions = () => {
     }
   };
 
-  const handleSimBuy = async () => {
-    if (!amountToken || !tokenInfo?.priceSol) return;
-    if (!telegramId) return;
-
-    const amountInSol = amountToken * Number(tokenInfo.priceSol);
-
-    try {
-      setLoading(true);
-      const res = await fetch("/api/telegram/simulation/buy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          telegramId: `${telegramId}`,
-          tokenAddress,
-          amount: amountInSol,
-        }),
-      });
-
-      const result = await res.json();
-      console.log("Buy Result:", result);
-      setShowSlideUp(false);
-      setTxHash(result.transactionLink);
-      setSuccess(true);
-      setAmountToken(0);
-      setTokenAddress("");
-    } catch (error) {
-      console.error("Buy error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
     <div className="relative max-w-xl mx-auto py-8 text-white">
       <div className="flex items-center justify-between w-full border border-[#E0A503]/40 rounded-lg px-4 py-3 bg-black  text-[#CC920F]/70">
@@ -242,30 +210,12 @@ const BuyPositions = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    {!isSimulation && (
-                      <div className="bg-[#1f1f1f] p-3 rounded-lg">
-                        <p className="text-gray-400 text-sm">Your Balance</p>
-                        <p className="font-medium">
-                          {userInfo.tokenBalance} {tokenInfo.symbol} (≈ $
-                          {userInfo.tokenBalanceUsd.toFixed(4)})
-                        </p>
-                      </div>
-                    )}
-                    <div className="bg-[#1f1f1f] p-3 rounded-lg">
-                      <p className="text-gray-400 text-sm">Your Balance</p>
-                      {!isSimulation ? (
-                        <p className="font-medium">
-                          {userData?.balance} Sol (≈ $
-                          {userData?.solUsdBalance.toFixed(4)})
-                        </p>
-                      ) : (
-                        <p className="font-medium">
-                          {userData?.simulationBalance} Sol (≈ $
-                          {userData?.simulationUsd.toFixed(4)})
-                        </p>
-                      )}
-                    </div>
+                  <div className="bg-[#1f1f1f] p-3 rounded-lg">
+                    <p className="text-gray-400 text-sm">Your Balance</p>
+                    <p className="font-medium">
+                      {userInfo.tokenBalance} {tokenInfo.symbol} (≈ $
+                      {userInfo.tokenBalanceUsd.toFixed(4)})
+                    </p>
                   </div>
 
                   <div className="space-y-2 pt-2">
@@ -303,7 +253,7 @@ const BuyPositions = () => {
                       Cancel
                     </button>
                     <button
-                      onClick={isSimulation ? handleSimBuy : handleBuy}
+                      onClick={handleBuy}
                       disabled={loading || amountToken <= 0 || !telegramId}
                       className="px-4 py-2 bg-green-600 rounded hover:bg-green-500 text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-24"
                     >
@@ -357,16 +307,15 @@ const BuyPositions = () => {
             <p className="text-sm mt-4 text-white/80">
               Your transaction was successful!
             </p>
-            {!isSimulation && (
-              <a
-                href={txHash}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-[#E6B911] underline mt-2 block break-all hover:text-[#f5d13b] transition-colors"
-              >
-                View on Solscan ↗
-              </a>
-            )}
+
+            <a
+              href={txHash}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#E6B911] underline mt-2 block break-all hover:text-[#f5d13b] transition-colors"
+            >
+              View on Solscan ↗
+            </a>
 
             <p className="text-xs text-gray-400 mt-4">
               Redirecting to homepage in {countdown} second
