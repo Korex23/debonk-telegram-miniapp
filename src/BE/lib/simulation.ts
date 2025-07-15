@@ -182,6 +182,7 @@ export async function getSimulationPositions(telegramId: string) {
         tokenMC: tokenDetails.mc,
         tokenSymbol: tokenDetails.symbol,
         tokenLiquidity: tokenDetails.liquidityInUsd,
+        volume24h: tokenDetails.volume.h24,
         PNL_usd,
         PNL_sol,
         PNL_Sol_percent: Number(PNL_Sol_percent),
