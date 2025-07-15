@@ -194,7 +194,7 @@ const PositionModal: React.FC<Props> = ({
   const handleSellSimPositions = async (percent: number) => {
     try {
       setSellLoading(true);
-      const res = await fetch("/api/telegram/sell", {
+      const res = await fetch("/api/telegram/simulation/sell", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
