@@ -1,5 +1,6 @@
 "use client";
 
+import { useUserData } from "../context/user-provider";
 import error from "@/assets/error.json";
 import success from "@/assets/success.json";
 import Lottie from "lottie-react";
@@ -59,6 +60,7 @@ const PositionModal: React.FC<Props> = ({
   const [successful, setSuccessful] = useState(false);
   const [buySuccess, setBuySuccess] = useState(false);
   const [countdown, setCountdown] = useState<number>(0);
+  const { isSimulation } = useUserData();
 
   const isNavigating = useRef(false);
 
@@ -146,7 +148,77 @@ const PositionModal: React.FC<Props> = ({
 
       if (result.status === true && result.txHash) {
         // alert("Transaction passed");
-        setTxHash(result.txHash);
+        setSellTxHash(result.txHash);
+        setSuccessful(true);
+      } else {
+        // alert("Transaction failed");
+        setFailed(true);
+        setErr(result.message || "Transaction failed. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("Error selling position:", error);
+      // alert("Catch block: " + error.message);
+      setFailed(true);
+      setErr(error.message || "An unexpected error occurred.");
+    } finally {
+      setSellLoading(false);
+    }
+  };
+
+  const handleSimBuy = async (amount: number) => {
+    if (!amount) return;
+    if (!telegramId) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch("/api/telegram/simulation/buy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          telegramId: `${telegramId}`,
+          tokenAddress: data.tokenAddress,
+          amount,
+        }),
+      });
+
+      const result = await res.json();
+      console.log("Buy Result:", result);
+      setTxHash(result.transactionLink);
+      setBuySuccess(true);
+    } catch (error) {
+      console.error("Buy error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSellSimPositions = async (percent: number) => {
+    try {
+      setSellLoading(true);
+      const res = await fetch("/api/telegram/sell", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          telegramId: `${telegramId}`,
+          tokenAddress: data.tokenAddress,
+          percent: percent,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Server error ${res.status}: ${text}`);
+      }
+
+      const result = await res.json();
+      console.log("Sell result:", result);
+      // alert(JSON.stringify(result, null, 2));
+
+      if (result.status === true && result.txHash) {
+        // alert("Transaction passed");
+        setSellTxHash(result.txHash);
         setSuccessful(true);
       } else {
         // alert("Transaction failed");
@@ -304,11 +376,11 @@ const PositionModal: React.FC<Props> = ({
           {[0.1, 0.5, 1, 5, 10].map((v) => (
             <button
               key={v}
-              onClick={() => handleBuy(v)}
+              onClick={() => (isSimulation ? handleSimBuy(v) : handleBuy(v))}
               disabled={solBalance < v}
               className={`bg-green-700 hover:bg-green-600 p-2 rounded text-xs
-          ${solBalance < v ? "opacity-50 cursor-not-allowed" : ""}
-        `}
+              ${solBalance < v ? "opacity-50 cursor-not-allowed" : ""}
+            `}
             >
               {v} Sol
             </button>
@@ -320,9 +392,11 @@ const PositionModal: React.FC<Props> = ({
             <button
               key={v}
               className="bg-red-700 hover:bg-red-600 p-2 rounded"
-              onClick={() => {
-                handleSellRealPositions(v);
-              }}
+              onClick={() =>
+                isSimulation
+                  ? handleSellSimPositions(v)
+                  : handleSellRealPositions(v)
+              }
             >
               {v}%
             </button>

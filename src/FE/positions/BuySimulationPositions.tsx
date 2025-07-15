@@ -16,9 +16,9 @@ const BuySimPositions = () => {
   const [loading, setLoading] = useState(false);
   const [fetchingTokenData, setFethcingTokenData] = useState(false);
   const [successful, setSuccess] = useState<boolean>(false);
-  const [txHash, setTxHash] = useState("");
   const [countdown, setCountdown] = useState(5);
-  const { telegramData, fetchPositionsInfo } = useUserData();
+  const { telegramData, fetchSimulationPositionsInfo, userData } =
+    useUserData();
   const telegramId = telegramData?.id;
   const router = useRouter();
 
@@ -57,7 +57,7 @@ const BuySimPositions = () => {
         setTokenInfo(data.token);
         setUserInfo(data.user);
         setShowSlideUp(true);
-        await fetchPositionsInfo(`${telegramId}`);
+        await fetchSimulationPositionsInfo(`${telegramId}`);
       } else {
         setTokenInfo(null);
         setShowSlideUp(false);
@@ -103,7 +103,6 @@ const BuySimPositions = () => {
       const result = await res.json();
       console.log("Buy Result:", result);
       setShowSlideUp(false);
-      setTxHash(result.transactionLink);
       setSuccess(true);
       setAmountToken(0);
       setTokenAddress("");
@@ -307,15 +306,6 @@ const BuySimPositions = () => {
             <p className="text-sm mt-4 text-white/80">
               Your transaction was successful!
             </p>
-
-            <a
-              href={txHash}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-[#E6B911] underline mt-2 block break-all hover:text-[#f5d13b] transition-colors"
-            >
-              View on Solscan ↗
-            </a>
 
             <p className="text-xs text-gray-400 mt-4">
               Redirecting to homepage in {countdown} second

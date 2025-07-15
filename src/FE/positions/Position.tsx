@@ -235,7 +235,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
 
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-[#1a1a1a] border border-gray-700 rounded-xl p-6 w-[95%] max-w-md text-white shadow-2xl animate-fade-in">
+          <div className="bg-black border  border-zinc-800 rounded-xl p-6 w-[95%] max-w-md text-white shadow-2xl animate-fade-in">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-white">
                 Sell {position.tokenTicker}
