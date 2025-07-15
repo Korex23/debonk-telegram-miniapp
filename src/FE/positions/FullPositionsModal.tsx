@@ -183,7 +183,6 @@ const PositionModal: React.FC<Props> = ({
 
       const result = await res.json();
       console.log("Buy Result:", result);
-      setTxHash(result.transactionLink);
       setBuySuccess(true);
     } catch (error) {
       console.error("Buy error:", error);
@@ -218,7 +217,6 @@ const PositionModal: React.FC<Props> = ({
 
       if (result.status === true && result.txHash) {
         // alert("Transaction passed");
-        setSellTxHash(result.txHash);
         setSuccessful(true);
       } else {
         // alert("Transaction failed");
