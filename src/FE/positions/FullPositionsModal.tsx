@@ -37,6 +37,7 @@ interface Props {
   onClose: () => void;
   telegramId: string;
   solBalance: number;
+  simulationBalance: number;
 }
 
 const PositionModal: React.FC<Props> = ({
@@ -44,6 +45,7 @@ const PositionModal: React.FC<Props> = ({
   onClose,
   telegramId,
   solBalance,
+  simulationBalance,
 }) => {
   const formatter = new Intl.NumberFormat("en-US", {
     notation: "compact",
@@ -61,6 +63,8 @@ const PositionModal: React.FC<Props> = ({
   const [buySuccess, setBuySuccess] = useState(false);
   const [countdown, setCountdown] = useState<number>(0);
   const { isSimulation } = useUserData();
+
+  const balance = isSimulation ? simulationBalance : solBalance;
 
   const isNavigating = useRef(false);
 
@@ -367,7 +371,7 @@ const PositionModal: React.FC<Props> = ({
         </div>
 
         <div className="text-start text-zinc-400 text-xs mt-4">
-          Balance: {solBalance.toFixed(2)} SOL
+          Balance: {balance.toFixed(2)} SOL
         </div>
 
         <div className="grid grid-cols-5 gap-1 mt-2 text-xs">
@@ -375,9 +379,9 @@ const PositionModal: React.FC<Props> = ({
             <button
               key={v}
               onClick={() => (isSimulation ? handleSimBuy(v) : handleBuy(v))}
-              disabled={solBalance < v}
+              disabled={balance < v}
               className={`bg-green-700 hover:bg-green-600 p-2 rounded text-xs
-              ${solBalance < v ? "opacity-50 cursor-not-allowed" : ""}
+              ${balance < v ? "opacity-50 cursor-not-allowed" : ""}
             `}
             >
               {v} Sol

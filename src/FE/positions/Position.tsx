@@ -364,6 +364,7 @@ const PositionCard: React.FC<PositionCardProps> = ({ position }) => {
             onClose={() => setPositionModal(false)}
             telegramId={String(telegramId)}
             solBalance={userData?.balance || 0}
+            simulationBalance={userData?.simulationBalance || 0}
           />
         </div>
       )}
