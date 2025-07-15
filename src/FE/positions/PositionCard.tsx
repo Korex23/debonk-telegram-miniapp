@@ -2,6 +2,7 @@
 
 import { useUserData } from "../context/user-provider";
 import BuyPositions from "./BuyPositions";
+import BuySimPositions from "./BuySimulationPositions";
 import PositionCard from "./Position";
 import React from "react";
 
@@ -36,7 +37,7 @@ const PositionsCard: React.FC = () => {
           )}
         </div>
       </div>
-      <BuyPositions />
+      {isSimulation ? <BuySimPositions /> : <BuyPositions />}
     </div>
   );
 };
